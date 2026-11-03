@@ -1,3 +1,9 @@
+## 🆕 Beginning: Palette + Fixes
+- 🎨 Colour: EAE0CF · 94B4C1 · 547792 (badhe)
+- 🧪 Practice ma 5 prashno + 1 Line Claim button
+- 🏆 Winner card ma lakir nathi, halki chamak (faded sheen); projector par winner naam motu ane vachche
+Upload only: server.js, host.html, player.html
+
 ## 🆕 Beginning: Fixes
 - 🧪 Practice ma have 3 prashno (2 khana ⭐ Free)
 - 🏆 Winner Reveal ma pehla na winners ni naam-list faded rite niche dekhaay chhe
