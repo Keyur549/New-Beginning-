@@ -1,5 +1,5 @@
 ## 🆕 Beginning: Palette + Fixes
-- 🎨 Colour: EAE0CF · 94B4C1 · 547792 (badhe)
+- 🎨 Premium Emerald + Antique Gold + Ivory colour theme (badhe)
 - 🧪 Practice ma 5 prashno + 1 Line Claim button
 - 🏆 Winner card ma lakir nathi, halki chamak (faded sheen); projector par winner naam motu ane vachche
 Upload only: server.js, host.html, player.html
