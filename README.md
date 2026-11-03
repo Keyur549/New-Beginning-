@@ -1,3 +1,9 @@
+# 🆕 Logo Splash + Colour Theme (latest)
+- **logo.png** = જ્ઞાન શોધ · THE BEGINNING logo. Player jyare Join kare tyare pehla cinematic logo splash + music (~7 sec, tap karine skip) aave, pachhi card.
+  Logo badalvo hoy to same naam (logo.png) thi file replace karo.
+- **Colours badalva (vare vare):** Host Lobby ma "🎨 Game ના Colours બદલો" — 6 ready Theme (Fun Premium, Royal Navy & Gold, Emerald, Sunset, Royal Purple, Ocean) athva Main/Accent/Background potana colours. Wheel, Mystery Box, Round Intro, Card, Confetti badhu badlay ane Players ne pan turant dekhay. Last pasand yaad rahe che.
+- **Default colour** config.json ma `"theme": {"id":"navy","p":"#1F3A7A","s":"#D4A437","bg":"#F6EEDA"}` lakhi ne pan set kari shakay.
+
 ## 🆕 Beginning: Palette + Fixes
 - 🎨 Fun Premium theme: Violet + Orange + multicolour (Wheel ma 7 rang, Mystery Box 7 rang, rainbow stripe)
 - 🧪 Practice ma 5 prashno + 1 Line Claim button

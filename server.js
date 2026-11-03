@@ -58,7 +58,8 @@ function loadConfig(){
 const CFG = loadConfig();
 // per-room overrides (Host can edit Round names / Mystery Box points at Create Room or live from Host Tools)
 function RC(room){ const o=(room&&room.cfgOvr)||{}; return Object.assign({}, CFG, o); }
-function publicCfg(room){ const c=RC(room); return { rounds:CFG.rounds, perRound:CFG.perRound, roundNames:c.roundNames, correctPts:c.correctPts, wrongPts:c.wrongPts, lastMult:c.lastRoundMult, boxSec:c.boxSec, introSec:INTRO_SEC }; }
+function cleanTheme(t){ if(!t||typeof t!=='object') return null; const hx=v=>/^#[0-9a-fA-F]{6}$/.test(String(v||''))?String(v).toLowerCase():null; const p=hx(t.p), s=hx(t.s), bg=hx(t.bg); if(!p||!s||!bg) return null; const o={p,s,bg,id:String(t.id||'custom').replace(/[^a-z0-9_-]/gi,'').slice(0,20)||'custom'}; if(t.rainbow||o.id==='fun') o.rainbow=true; return o; }
+function publicCfg(room){ const c=RC(room); return { theme:cleanTheme(c.theme), rounds:CFG.rounds, perRound:CFG.perRound, roundNames:c.roundNames, correctPts:c.correctPts, wrongPts:c.wrongPts, lastMult:c.lastRoundMult, boxSec:c.boxSec, introSec:INTRO_SEC }; }
 const INTRO_SEC = 7.5;
 function cleanNames(a){ return Array.from({length:CFG.rounds},(_,i)=>{ const v=(Array.isArray(a)&&a[i]!=null)?String(a[i]).trim().slice(0,40):''; return v||CFG.roundNames[i]; }); }
 function cleanPool(a){ if(!Array.isArray(a)||a.length!==CFG.boxPool.length) return null; const o=a.map(x=>Math.round(+x)); if(o.some(x=>!isFinite(x)||x<-50||x>50)) return null; return o; }
@@ -454,7 +455,7 @@ io.on('connection', (socket) => {
     cb && cb({ok: id===HOST_ID && pw===HOST_PW});
   });
 
-  socket.on('host:create', ({hostName, maxPlayers, qaText, roundNames, boxPool, lastMult}, cb) => {
+  socket.on('host:create', ({hostName, maxPlayers, qaText, roundNames, boxPool, lastMult, theme}, cb) => {
     const code = randCode();
     const useDefault = !(qaText||'').trim();
     const parsed = parseRounds(useDefault ? defaultQuestionsText() : qaText);
@@ -464,7 +465,7 @@ io.on('connection', (socket) => {
       questions: parsed.questions, usedIdx:[], curIdx:null, timerEnd:null,
       round:0, roundsDone:0, boxEnd:null, boxAuto:false,
       players:{}, winners:null, revealStep:0, createdAt: Date.now(),
-      cfgOvr:{ roundNames: cleanNames(roundNames), boxPool: cleanPool(boxPool)||CFG.boxPool.slice(), lastRoundMult: (+lastMult>=1&&+lastMult<=5)?Math.round(+lastMult):CFG.lastRoundMult }
+      cfgOvr:{ theme: cleanTheme(theme)||cleanTheme(CFG.theme)||undefined, roundNames: cleanNames(roundNames), boxPool: cleanPool(boxPool)||CFG.boxPool.slice(), lastRoundMult: (+lastMult>=1&&+lastMult<=5)?Math.round(+lastMult):CFG.lastRoundMult }
     };
     socket.join(code);
     cb && cb({ok:true, code, parseInfo:{count:parsed.questions.length, usedDefault:useDefault}});
@@ -474,6 +475,10 @@ io.on('connection', (socket) => {
   socket.on('host:start', ({code}) => { const r=rooms[code]; if(!r) return; r.joinEnd=null; if(!r.botsPlay) for(const k of Object.keys(r.players)) if(r.players[k].bot) delete r.players[k]; r.status='active'; if(!r.startedAt) r.startedAt=Date.now(); startRoundIntro(r,code,0); });
 
   function startRoundIntro(r,code,round){ r.introFor=round; r.introAt=Date.now(); r.introEnd=Date.now()+(INTRO_SEC+0.6)*1000; broadcast(code); }
+  socket.on('host:setTheme', ({code, theme}, cb) => {
+    const r=hostRoom(code); const t=cleanTheme(theme); if(!r||!t){ cb&&cb({ok:false}); return; }
+    (r.cfgOvr||(r.cfgOvr={})).theme=t; broadcast(code); cb&&cb({ok:true});
+  });
   socket.on('host:introDone', ({code}) => { const r=rooms[code]; if(!r||!r.introEnd) return; r.introEnd=0; broadcast(code); });
   // Host: edit Round names / Mystery Box points (also while the game is running)
   socket.on('host:setRoundCfg', ({code, roundNames, boxPool, lastMult}, cb) => {
