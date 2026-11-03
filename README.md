@@ -1,5 +1,5 @@
 ## 🆕 Beginning: Palette + Fixes
-- 🎨 Premium Emerald + Antique Gold + Ivory colour theme (badhe)
+- 🎨 Fun Premium theme: Violet + Orange + multicolour (Wheel ma 7 rang, Mystery Box 7 rang, rainbow stripe)
 - 🧪 Practice ma 5 prashno + 1 Line Claim button
 - 🏆 Winner card ma lakir nathi, halki chamak (faded sheen); projector par winner naam motu ane vachche
 Upload only: server.js, host.html, player.html
