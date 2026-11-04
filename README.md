@@ -1,3 +1,6 @@
+# 🆕 Update 5
+- Wheel: Spin chalu thay tyare j previous number dhire dhire patlo thai ne gayab thay (rotate ma khabar na pade), baki segments smooth rite jagya le che.
+
 # 🆕 Update 4
 - Wheel: Spin dabavta previous question no number wheel ma thi fade thai ne jato rahe, wheel upright (middle) ma aavi ne pachhi spin thay. Projector par pan.
 - Projector par "⏱ સમય 15 sec" spasht dekhay + control bar ma selected time highlight.

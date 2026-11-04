@@ -1555,6 +1555,26 @@ function computeLayout(r){
   const nums=[]; for(let i=lo+1;i<=lo+per;i++) if(!used.has(i-1)) nums.push(i);
   return nums;
 }
+const WHEEL_R=128, WHEEL_C=142;
+function wheelPal(){ return (window.THEME&&THEME.pal.wheel)||[['#FF6B6B','#C62828'],['#FFB74D','#E65100'],['#FFEE58','#F9A825'],['#66BB6A','#2E7D32'],['#26C6DA','#00838F'],['#AB47BC','#6A1B9A'],['#FF8A65','#D84315']]; }
+function wheelFs(t){ return t>12?16:t>6?24:34; }
+// segments of the wheel; `weights` (optional) lets one segment shrink smoothly to nothing while the others grow to fill the circle
+function wheelSegs(numbers, highlightNumber, weights, fs){
+  const R=WHEEL_R, C=WHEEL_C, pal=wheelPal(), n=numbers.length, W=numbers.map((x,i)=>weights?weights[i]:1), S=W.reduce((a,b)=>a+b,0)||1;
+  const f=fs||wheelFs(n); let out='', acc=-90;
+  numbers.forEach((num,i)=>{
+    const sg=W[i]/S*360, a0=acc, a1=acc+sg; acc=a1; if(W[i]<=0.001) return;
+    const x1=C+R*Math.cos(a0*Math.PI/180), y1=C+R*Math.sin(a0*Math.PI/180);
+    const x2=C+R*Math.cos(a1*Math.PI/180), y2=C+R*Math.sin(a1*Math.PI/180);
+    const large=sg>180?1:0, gi=(num-1)%pal.length;
+    const ring=num===highlightNumber?'stroke="#fff" stroke-width="3.5"':'stroke="#fff" stroke-opacity=".85" stroke-width="1.6"';
+    if(n===1) out+=`<circle data-n="${num}" cx="${C}" cy="${C}" r="${R}" fill="url(#whg${gi})" ${ring}/>`;
+    else out+=`<path data-n="${num}" d="M${C},${C} L${x1.toFixed(1)},${y1.toFixed(1)} A${R},${R} 0 ${large} 1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="url(#whg${gi})" ${ring}/>`;
+    const mid=(a0+a1)/2, lx=C+(R*0.66)*Math.cos(mid*Math.PI/180), ly=C+(R*0.66)*Math.sin(mid*Math.PI/180), op=Math.min(1,W[i]*2.2);
+    out+=`<text data-n="${num}" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="#fff" stroke="rgba(23,11,59,.75)" stroke-width="2.6" paint-order="stroke" font-family="'Baloo Bhai 2','Hind Vadodara',sans-serif" font-size="${(+f).toFixed(1)}" font-weight="800" text-anchor="middle" dominant-baseline="central" opacity="${op.toFixed(2)}">${num}</text>`;
+  });
+  return out;
+}
 function wheelSVG(numbers, rotation, highlightNumber){
   const total=Math.max(numbers.length,1), R=128,C=142,seg=360/total;
   const pal=(window.THEME&&THEME.pal.wheel)||[['#FF6B6B','#C62828'],['#FFB74D','#E65100'],['#FFEE58','#F9A825'],['#66BB6A','#2E7D32'],['#26C6DA','#00838F'],['#AB47BC','#6A1B9A'],['#FF8A65','#D84315']];
@@ -1562,17 +1582,7 @@ function wheelSVG(numbers, rotation, highlightNumber){
   pal.forEach((c,i)=>{ defs+=`<radialGradient id="whg${i}" cx="50%" cy="50%" r="55%" gradientUnits="userSpaceOnUse" fx="${C}" fy="${C}"><stop offset="0" stop-color="${c[0]}"/><stop offset="1" stop-color="${c[1]}"/></radialGradient>`; });
   defs+='</defs>';
   let paths=`<circle cx="${C}" cy="${C}" r="${R+11}" fill="url(#whR)"/><circle cx="${C}" cy="${C}" r="${R+2}" fill="${(window.THEME&&THEME.deep)||'#2E1065'}"/>`;
-  numbers.forEach((num,i)=>{
-    const a0=i*seg-90, a1=a0+seg;
-    const x1=C+R*Math.cos(a0*Math.PI/180), y1=C+R*Math.sin(a0*Math.PI/180);
-    const x2=C+R*Math.cos(a1*Math.PI/180), y2=C+R*Math.sin(a1*Math.PI/180);
-    const large=seg>180?1:0, gi=(num-1)%pal.length;
-    const ring=num===highlightNumber?'stroke="#fff" stroke-width="3.5"':'stroke="#fff" stroke-opacity=".85" stroke-width="1.6"';
-    if(total===1) paths+=`<circle data-n="${num}" cx="${C}" cy="${C}" r="${R}" fill="url(#whg${gi})" ${ring}/>`;
-    else paths+=`<path data-n="${num}" d="M${C},${C} L${x1.toFixed(1)},${y1.toFixed(1)} A${R},${R} 0 ${large} 1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="url(#whg${gi})" ${ring}/>`;
-    const mid=(a0+a1)/2, lx=C+(R*0.66)*Math.cos(mid*Math.PI/180), ly=C+(R*0.66)*Math.sin(mid*Math.PI/180);
-    paths+=`<text data-n="${num}" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="#fff" stroke="rgba(23,11,59,.75)" stroke-width="2.6" paint-order="stroke" font-family="'Baloo Bhai 2','Hind Vadodara',sans-serif" font-size="${total>12?16:total>6?24:34}" font-weight="800" text-anchor="middle" dominant-baseline="central">${num}</text>`;
-  });
+  paths+=`<g class="wsegs">${wheelSegs(numbers,highlightNumber)}</g>`;
   let studs=''; for(let i=0;i<24;i++){ const a=i*15*Math.PI/180, sx=C+(R+6.5)*Math.cos(a), sy=C+(R+6.5)*Math.sin(a); studs+=`<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="2.6" fill="${i%2?'#fff':'#E53935'}" stroke="#7C2D12" stroke-width=".5"/>`; }
   return `<div style="position:relative;width:284px;margin:10px auto 6px;">
   <svg viewBox="0 0 24 30" width="34" height="42" style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);z-index:3;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))"><path d="M12 29 L2 8 A11 11 0 1 1 22 8 Z" fill="#E53935" stroke="#fff" stroke-width="2"/><circle cx="12" cy="10" r="4" fill="#fff"/></svg>
@@ -1628,16 +1638,21 @@ function playFanfare(){
   }catch(e){}
 }
 let numberPopup=null, lastRevealIdx=null, lastQuestionIdx=null;
-function animateSpinTo(pos,total,idx){
+function animateSpinTo(pos,total,idx,col){
   spinning=true;
   const start=wheelRotation, target=computeTargetRotation(pos,total)+360, seg=360/Math.max(total,1), DUR=4400;
   const E=u=>{ const e=1-Math.pow(1-u,3.6), s=Math.min(1,u/.06); return e*(s*s*(3-2*s)); };   // smooth start, long silky slow-down
   render();
   let finished=false, lastK=null, t0=null;
-  const finish=()=>{ if(finished) return; finished=true; spinning=false; wheelRotation=target; document.querySelectorAll('svg#wheelSvg').forEach(el=>{el.style.transform='rotate('+target+'deg)'}); render(); socket.emit('host:spinComplete',{code:state.code, idx}); };
+  const finish=()=>{ if(finished) return; finished=true; if(col) wheelLayout=col.fin; spinning=false; wheelRotation=target; document.querySelectorAll('svg#wheelSvg').forEach(el=>{el.style.transform='rotate('+target+'deg)'}); render(); socket.emit('host:spinComplete',{code:state.code, idx}); };
   const frame=(now)=>{
     if(finished) return; if(t0===null) t0=now;
     const u=Math.min(1,(now-t0)/DUR); wheelRotation=start+(target-start)*E(u);
+    if(col && !col.done){ const cu=Math.max(0,Math.min(1,((now-t0)-350)/1300)), ce=cu*cu*(3-2*cu), wv=1-ce;   // starts after the wheel is already moving, ends while it is still fast
+      const nn=col.full.length, fs=wheelFs(nn)+(wheelFs(nn-1)-wheelFs(nn))*ce, ws=col.full.map(x=>x===col.num?wv:1);
+      const L=cu>=1?col.fin:col.full, html=wheelSegs(L,null,cu>=1?null:ws,cu>=1?wheelFs(L.length):fs);
+      document.querySelectorAll('svg#wheelSvg .wsegs').forEach(g=>{ g.innerHTML=html; });
+      if(cu>=1){ col.done=true; wheelLayout=col.fin; } }
     // always paint the CURRENT wheel element(s): even if the page re-renders mid-spin the motion never stutters
     const tf='rotate('+wheelRotation.toFixed(2)+'deg)'; document.querySelectorAll('svg#wheelSvg').forEach(el=>{el.style.transition='none'; el.style.transform=tf;});
     const k=Math.floor((wheelRotation%360000)/seg); if(lastK!==null && k!==lastK) playTick(); lastK=k;
@@ -1653,22 +1668,14 @@ function maybeAnimate(r){
   if(r.status==='active'){ lastWheelIdx=null; lastRevealIdx=null; lastQuestionIdx=null; lastSpokenIdx=null; pendingReveal=null; numberPopup=null; }
   if(r.status==='spinning' && r.curIdx!=null && r.curIdx!==lastWheelIdx){
     lastWheelIdx=r.curIdx;
-    const _old=pendingReveal, _go=()=>{
-      pendingReveal=null; wheelRotation=0; // previous number is gone, wheel sits upright in the middle
-      wheelLayout=computeLayout(r);
-      const num=r.curIdx+1, pos=wheelLayout.indexOf(num);
-      animateSpinTo(pos<0?0:pos, wheelLayout.length, r.curIdx);
-      try{ window.__pjForce&&__pjForce(); }catch(e){}
-    };
-    if(_old!=null && wheelLayout && wheelLayout.indexOf(_old)>=0){
-      // 1) the previous question's number fades out of the wheel while the wheel glides back to centre, 2) then the spin starts
-      const R0=wheelRotation, R1=Math.ceil(R0/360)*360, T0=performance.now(), D0=650;
-      const fr=(now)=>{ const u=Math.min(1,(now-T0)/D0), e=u*u*(3-2*u);
-        document.querySelectorAll('svg#wheelSvg').forEach(el=>{ el.style.transition='none'; el.style.transform='rotate('+(R0+(R1-R0)*e).toFixed(2)+'deg)';
-          el.querySelectorAll('[data-n="'+_old+'"]').forEach(n=>{ n.style.opacity=String(1-e); n.style.transformBox='fill-box'; n.style.transformOrigin='50% 50%'; n.style.transform='scale('+(1-.25*e).toFixed(3)+')'; }); });
-        if(u<1) requestAnimationFrame(fr); else { wheelRotation=R1; _go(); } };
-      spinning=true; requestAnimationFrame(fr);
-    } else _go();
+    const _old=pendingReveal, _full=(wheelLayout||[]).slice();
+    pendingReveal=null;
+    const _fin=computeLayout(r);                 // final wheel (previous number gone, new number included)
+    const _col=(_old!=null && _full.indexOf(_old)>=0 && _fin.indexOf(_old)<0)?{num:_old,full:_full,fin:_fin}:null;
+    wheelLayout=_col?_full:_fin;                 // spin starts with the old wheel; the number melts away while it is already turning
+    const num=r.curIdx+1, pos=_fin.indexOf(num);
+    animateSpinTo(pos<0?0:pos, _fin.length, r.curIdx, _col);
+    try{ window.__pjForce&&__pjForce(); }catch(e){}
   }
   if(r.status==='revealing' && r.curIdx!=null && r.curIdx!==lastRevealIdx){
     lastRevealIdx=r.curIdx;
