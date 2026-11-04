@@ -1,3 +1,10 @@
+# 🆕 Latest updates
+- Projector: winner screen ma naam + Score + Claim time badhu ek j screen ma (scroll nahi). Projector par game nu Logo. Wheel spin smooth (host jevu).
+- Player: Join dabavta j pehla Logo Splash, pachhi j card. Line bane tyare banner + alert + Claim button chamke (sachi/khoti last ma). L1/L2 tag clear.
+- Card: Round 1-3 ma 3-3 answer, Round 4-7 ma 4-4 answer (config.json `cardCounts`).
+- Colours: Host Lobby ma RGB code (#RRGGBB athva 31,58,122) lakhi ne pan colour set thay.
+- Naam: જ્ઞાન શોધ · THE BEGINNING (report card, share card, certificate badhe).
+
 # 🆕 Logo Splash + Colour Theme (latest)
 - **logo.png** = જ્ઞાન શોધ · THE BEGINNING logo. Player jyare Join kare tyare pehla cinematic logo splash + music (~7 sec, tap karine skip) aave, pachhi card.
   Logo badalvo hoy to same naam (logo.png) thi file replace karo.

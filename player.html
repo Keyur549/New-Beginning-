@@ -263,12 +263,13 @@ function uiJoinRoom(){
   if(!name){ state.joinErr='તમારું નામ નાખો.'; keepForm(); return; }
   if(!zone){ state.joinErr='Zone નું નામ નાખો.'; keepForm(); return; }
   state.profile={name,avatar,zone};
+  try{ window.showLogoSplash&&showLogoSplash(name); }catch(e){}
   socket.emit('player:join',{code,name,zone,avatar,clientId:getClientId(),token:(function(){const q=sess(); return q&&q.code===code&&String(q.name||'').trim().toLowerCase()===name.toLowerCase()&&String(q.zone||'').trim().toLowerCase()===zone.toLowerCase()?q.token:undefined;})()},(res)=>{
-    if(!res.ok){ state.joinErr=res.error; keepForm(); if(res.retry && (uiJoinRoom._n=(uiJoinRoom._n||0)+1)<=8) setTimeout(()=>{ if(!state.code && document.getElementById('joinName')) uiJoinRoom(); },5000); return; }
+    if(!res.ok){ try{ window.hideLogoSplash&&hideLogoSplash(); }catch(e){} state.joinErr=res.error; keepForm(); if(res.retry && (uiJoinRoom._n=(uiJoinRoom._n||0)+1)<=8) setTimeout(()=>{ if(!state.code && document.getElementById('joinName')) uiJoinRoom(); },5000); return; }
     uiJoinRoom._n=0;
     state.code=code; state.name=res.yourKey; state.token=res.token; state.joinErr=''; saveSess({code,name,zone,avatar,key:res.yourKey,token:res.token}); if(res.priv){ state.fifty=res.priv.fifty||null; state.copy=res.priv.copy||null; }
     state.room=res.room; socket.emit('subscribe',Object.assign({code},idp())); render();
-    try{ if(window.showLogoSplash) showLogoSplash(res.yourKey||name); }catch(e){}
+    try{ window.updateLogoSplashName&&updateLogoSplashName(res.yourKey||name); }catch(e){}
     if(!res.resumed && res.yourKey!==name.trim()) alert('બીજા Zone માં આ નામ પહેલેથી છે — તમે "'+res.yourKey+'" તરીકે Join થયા. Winner list માં આ જ નામ શોધજો.');
   });
 }
@@ -438,7 +439,7 @@ function wcDraw(d){
   for(let i=0;i<70;i++){ const x=80+rnd()*(W-160), y=80+rnd()*(H-160); if(x>200&&x<880&&y>430&&y<1000&&rnd()<.8) continue; g.save(); g.translate(x,y); g.rotate(rnd()*6); g.fillStyle=cols[i%5]; g.globalAlpha=.55+rnd()*.4; g.fillRect(-6,-3,12+rnd()*8,6); g.restore(); }
   cardFrame(g,W,H,['#fff1b8','#d4a017','#ffe28a'],'#14083f');
   g.textAlign='center'; g.textBaseline='alphabetic';
-  g.fillStyle='#ffe9a8'; cardFit(g,'🎴 જ્ઞાન શોધ – Lucky Card Quiz',860,46,'800'); g.fillText('🎴 જ્ઞાન શોધ – Lucky Card Quiz',W/2,135);
+  g.fillStyle='#ffe9a8'; cardFit(g,'જ્ઞાન શોધ · THE BEGINNING',860,46,'800'); g.fillText('જ્ઞાન શોધ · THE BEGINNING',W/2,135);
   g.font='120px '+CARD_FF; g.fillStyle='#000'; g.fillText('👑',W/2,290);
   // ribbon
   const rw=900,rh=118,rx=(W-rw)/2,ry=320; const rb=g.createLinearGradient(0,ry,0,ry+rh); rb.addColorStop(0,'#ffe28a'); rb.addColorStop(1,'#d4a017');
@@ -462,7 +463,7 @@ function tyDraw(d){
   const rnd=cardRand(11); for(let i=0;i<46;i++){ const x=90+rnd()*(W-180), y=90+rnd()*(H-180); if(x>180&&x<900&&y>230&&y<1150) continue; g.fillStyle=['#d4a017','#F59E0B','#f9a8d4'][i%3]; g.globalAlpha=.5; g.beginPath(); g.arc(x,y,3+rnd()*5,0,7); g.fill(); g.globalAlpha=1; }
   cardFrame(g,W,H,['#e9c46a','#b8860b','#f4d98a'],'#fffaf0');
   g.textAlign='center'; g.textBaseline='alphabetic';
-  g.fillStyle='#5B21B6'; cardFit(g,'🎴 જ્ઞાન શોધ – Lucky Card Quiz',860,46,'800'); g.fillText('🎴 જ્ઞાન શોધ – Lucky Card Quiz',W/2,135);
+  g.fillStyle='#5B21B6'; cardFit(g,'જ્ઞાન શોધ · THE BEGINNING',860,46,'800'); g.fillText('જ્ઞાન શોધ · THE BEGINNING',W/2,135);
   g.font='110px '+CARD_FF; g.fillStyle='#000'; g.fillText('🙏',W/2,280);
   const tg=g.createLinearGradient(240,0,840,0); tg.addColorStop(0,'#6D28D9'); tg.addColorStop(.5,'#6D28D9'); tg.addColorStop(1,'#6D28D9'); g.fillStyle=tg; cardFit(g,'ધન્યવાદ!',800,128,'900',60); g.fillText('ધન્યવાદ!',W/2,430);
   g.strokeStyle='#d4a017'; g.lineWidth=3; g.beginPath(); g.moveTo(340,468); g.lineTo(740,468); g.stroke(); g.fillStyle='#d4a017'; g.beginPath(); g.arc(W/2,468,8,0,7); g.fill();
@@ -517,7 +518,7 @@ table{width:100%;border-collapse:collapse;font-size:.88rem}th{background:#2E1065
 tr.g td:nth-child(3){color:#15803d;font-weight:600}tr.b td:nth-child(3){color:#b91c1c;font-weight:600}tr.b td:nth-child(4){color:#15803d;font-weight:600}tr.n td{color:#94a3b8}.ic{text-align:center}
 .ft{text-align:center;color:#475569;font-size:.8rem;margin-top:14px}.pr{display:block;margin:14px auto 0;padding:10px 20px;border:0;border-radius:12px;background:#2E1065;color:#fff;font:inherit;font-weight:700;cursor:pointer}
 .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:12px 0}.c5{aspect-ratio:1;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.72rem;font-weight:600;padding:3px;border-radius:8px;background:#e5e7eb}.c5{position:relative}.c5 .qb{position:absolute;top:1px;left:3px;font-size:.6rem;font-weight:800;font-style:normal;background:rgba(0,0,0,.5);color:#fff;border-radius:6px;padding:0 4px}.c5.green{background:#16a34a;color:#fff}.c5.red{background:#dc2626;color:#fff}@media print{body{background:#fff;padding:0}.pr{display:none}.wrap{box-shadow:none}}</style></head><body><div class="wrap">
-<h1>જ્ઞાન શોધ</h1><div class="sub">મારો Report Card</div><div class="av">${esc(p.avatar||'🦁')}</div><div class="nm">${esc(nm)}</div>${p.zone?`<div class="zn">Zone: ${esc(p.zone)}</div>`:''}
+<h1>જ્ઞાન શોધ</h1><div class="sub" style="letter-spacing:.35em;font-weight:800;color:#6D28D9">THE BEGINNING</div><div class="sub">મારો Report Card</div><div class="av">${esc(p.avatar||'🦁')}</div><div class="nm">${esc(nm)}</div>${p.zone?`<div class="zn">Zone: ${esc(p.zone)}</div>`:''}
 <div class="st"><div><b style="color:${res.netScore<0?'#dc2626':'#2E1065'}">${res.netScore}</b><span>🎯 Final Score</span></div><div><b style="color:#15803d">${res.correctCount}</b><span>✅ સાચા</span></div><div><b style="color:#dc2626">${res.wrongCount}</b><span>❌ ખોટા</span></div><div><b style="color:#6D28D9">${res.boxTotal>0?'+'+res.boxTotal:res.boxTotal}</b><span>🎁 Box Points</span></div></div>
 <h3>🎴 મારું 5×5 Card</h3><div class="grid">${cells5}</div>
 <h3>📊 Round wise Marks</h3>
@@ -706,9 +707,9 @@ async function scSave(m){
   g.textAlign='center';
   function wrap(t,y,sz,col,wt){ g.fillStyle=col; g.font=wt+' '+sz+'px '+CARD_FF; let line='',L=[]; t.split(' ').forEach(wd=>{ const tt=line?line+' '+wd:wd; if(g.measureText(tt).width>820&&line){L.push(line);line=wd;} else line=tt; }); L.push(line); L.forEach((l,i)=>g.fillText(l,540,y+i*sz*1.45)); return y+L.length*sz*1.45; }
   if(logo){ const k=Math.min(330/logo.width,300/logo.height); const w=logo.width*k,h=logo.height*k; g.save(); g.shadowColor='rgba(255,217,107,.65)'; g.shadowBlur=50; g.drawImage(logo,540-w/2,95+(300-h)/2,w,h); g.restore();
-    g.fillStyle='#F59E0B'; g.font='700 26px '+CARD_FF; g.fillText('જ્ઞાન શોધ – Lucky Card Quiz Championship',540,1215); }
+    g.fillStyle='#F59E0B'; g.font='700 26px '+CARD_FF; g.fillText('જ્ઞાન શોધ · THE BEGINNING',540,1215); }
   else { g.fillStyle='#F59E0B'; g.font='800 38px '+CARD_FF; g.fillText('જ્ઞાન શોધ',540,150);
-    g.fillStyle='#f1e9ff'; g.font='600 28px '+CARD_FF; g.fillText('Lucky Card Quiz Championship',540,196); }
+    g.fillStyle='#f1e9ff'; g.font='600 28px '+CARD_FF; g.fillText('THE BEGINNING',540,196); }
   if(!logo){ g.font='130px '+CARD_FF; g.fillText(m.e,540,370); }
   g.fillStyle=gold; cardFit(g,m.tier,800,52,'800',30); g.fillText(m.tier,540,455);
   g.fillStyle='#ffd96b'; cardFit(g,m.head,880,76,'900',40); g.fillText(m.head,540,560);
@@ -880,6 +881,15 @@ function render(){
   let cellState=Array(25).fill(null);
   if(r.status==='revealed'){ cellState=playerResults(state.name).cellState; }
   const LT=lineTags(state.name,r.status==='revealed');
+  let LNB='';
+  if(r.status!=='revealed'){
+    const _ln=markedLines(state.name);
+    const _need=[['line1',1],['line2',2],['line3',3],['line4',4],['line5',5],['full',5]];
+    const _open=_need.filter(([k,n])=>{ const c=p.claims&&p.claims[k]; const en=k==='full'?_ln>=5:_ln>=n; const more=c&&Object.keys(p.marks).length>c.marks; return en&&(!c||more); });
+    try{ if(typeof window.__lastLn==='number' && _ln>window.__lastLn) lineAlert(_ln); window.__lastLn=_ln; }catch(e){}
+    if(_ln>=1) LNB=`<div class="card lnban"><div style="font-size:1.15rem;font-weight:800">🎉 તમારી <b>${_ln} Line</b> બની ગઈ છે!</div>${_open.length?`<button class="btn" style="margin-top:8px" onclick="var e=document.getElementById('clm');e&&e.scrollIntoView({behavior:'smooth',block:'center'})">👇 હવે Claim કરો</button>`:`<div class="muted" style="margin-top:4px">✔ Claim થઈ ગયું</div>`}<div class="muted" style="margin-top:4px">તમારી Line સાચી છે કે ખોટી એ છેલ્લે Result માં ખબર પડશે.</div></div>`;
+  }
+  body+=LNB;
   body+=`<div class="card"><div class="grid">`;
   for(let i=0;i<25;i++){
     let cls='cell'+(LT[i]?' inline':'');
@@ -894,14 +904,14 @@ function render(){
   if(r.status!=='revealed'){
     const lines=markedLines(state.name);
     const opts=[['line1','1 Line',1],['line2','2 Line',2],['line3','3 Line',3],['line4','4 Line',4],['line5','5 Line',5],['full','Full House',5]];
-    body+=`<div class="card"><h2>Claim</h2><div class="row">`;
+    body+=`<div class="card" id="clm"><h2>Claim</h2><div class="row">`;
     for(const [key,label,need] of opts){
       const c=p.claims&&p.claims[key];
       const enabled=key==='full'?lines>=5:lines>=need;
       // a claim stays locked (validity is secret) unless the player has marked more cells since
       const more=c && Object.keys(p.marks).length>c.marks;
       const locked=c && !more;
-      body+=`<button class="btn ${c?'ghost':'secondary'}" ${(!enabled||locked)?'disabled':''} onclick="playerClaim('${key}')">${c?'✔ ':''}${label}${c?`<br><small>🕒 ${fmtTime(c.ts)} · ${fmtDur(c.ts-(r.startedAt||r.createdAt))}</small>`:''}</button>`;
+      body+=`<button class="btn ${c?'ghost':'secondary'}${(enabled&&!locked)?' pulse':''}" ${(!enabled||locked)?'disabled':''} onclick="playerClaim('${key}')">${c?'✔ ':''}${label}${c?`<br><small>🕒 ${fmtTime(c.ts)} · ${fmtDur(c.ts-(r.startedAt||r.createdAt))}</small>`:''}</button>`;
     }
     body+=`</div></div>`;
   } else {
@@ -966,7 +976,7 @@ if('serviceWorker' in navigator){ navigator.serviceWorker.getRegistrations().the
   var lab=d.label,ps=cfit(g,lab,W-500,66,800,CSERIF,34);g.font='800 '+ps+'px '+CSERIF;var pw=g.measureText(lab).width+120;
   g.fillStyle=A;g.beginPath();g.roundRect(W/2-pw/2,765,pw,104,52);g.fill();g.fillStyle='#fffaf0';g.fillText(lab,W/2,837);
   g.fillStyle='#3b2a00';var dt0=d.detail||'';if(dt0){var dsz=cfit(g,dt0,W-300,44,700,CSERIF,24);g.font='700 '+dsz+'px '+CSERIF;g.fillText(dt0,W/2,945)}
-  var ev=C.event||'જ્ઞાન શોધ – Lucky Card Quiz Championship';g.fillStyle='#6b5a2e';var es=cfit(g,ev,W-300,32,700,CSANS,20);g.font='700 '+es+'px '+CSANS;g.fillText(ev,W/2,1020);
+  var ev=C.event||'જ્ઞાન શોધ · THE BEGINNING';g.fillStyle='#6b5a2e';var es=cfit(g,ev,W-300,32,700,CSANS,20);g.font='700 '+es+'px '+CSANS;g.fillText(ev,W/2,1020);
   var dt=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
   g.font='600 28px '+CSANS;g.textAlign='left';g.fillText('તારીખ: '+dt,150,1135);g.textAlign='right';g.fillText('Room: '+(d.code||''),W-150,1135);
   g.textAlign='center';if(C.signer){g.fillStyle='#1f1400';var ss=cfit(g,C.signer,420,40,700,CSERIF,22);g.font='italic 700 '+ss+'px '+CSERIF;g.fillText(C.signer,W/2,1100)}
@@ -1141,7 +1151,7 @@ h1,h2{background:linear-gradient(90deg,var(--tpd),var(--ts2));-webkit-background
 </script>
 
 <style id="up-splash">
-#lsplash{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 50% 46%,var(--tdeep,#2E1065) 0%,var(--tdk,#170B3B) 55%,#05030d 100%);animation:lsIn .6s ease both;font-family:var(--fb,system-ui)}
+#lsplash{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 50% 46%,var(--tdeep,#2E1065) 0%,var(--tdk,#170B3B) 55%,#05030d 100%);font-family:var(--fb,system-ui)}
 #lsplash.out{animation:lsOut .9s ease both}
 @keyframes lsIn{from{opacity:0}to{opacity:1}}@keyframes lsOut{to{opacity:0;transform:scale(1.06)}}
 #lsplash .ls-rays{position:absolute;left:50%;top:46%;width:240vmax;height:240vmax;margin:-120vmax 0 0 -120vmax;background:repeating-conic-gradient(from 0deg,rgba(var(--srg,245,158,11),.2) 0 4deg,transparent 4deg 14deg);-webkit-mask:radial-gradient(circle,#000 0%,transparent 34%);mask:radial-gradient(circle,#000 0%,transparent 34%);animation:riSpin 60s linear infinite;opacity:0;animation:riSpin 60s linear infinite,lsRay 2s .8s ease forwards}
@@ -1199,11 +1209,26 @@ h1,h2{background:linear-gradient(90deg,var(--tpd),var(--ts2));-webkit-background
   if(on()&&ensure()){ try{ if(ctx.state==='suspended') ctx.resume(); score(); }catch(e){} }
   var born=Date.now(),fin=function(){ if(!live) return; live=false; clearTimeout(T); el.classList.add('out'); try{ if(ctx&&master){ master.gain.cancelScheduledValues(ctx.currentTime); master.gain.setTargetAtTime(0.0001,ctx.currentTime,0.25);} }catch(e){} setTimeout(function(){ try{el.remove()}catch(e){} try{done&&done()}catch(e){} },900); };
   el.onclick=function(){ if(Date.now()-born>1500) fin(); };
-  T=setTimeout(fin,7200);
+  T=setTimeout(fin,7200); window.__splFin=fin; window.__splKill=function(){ if(!live) return; live=false; clearTimeout(T); try{ if(ctx&&master) master.gain.setTargetAtTime(0.0001,ctx.currentTime,0.05);}catch(e){} try{el.remove()}catch(e){} };
  };
+ window.hideLogoSplash=function(){ if(window.__splKill) window.__splKill(); };
+ window.updateLogoSplashName=function(n){ var w=document.querySelector('#lsplash .ls-w'); if(w) w.textContent='સ્વાગત છે, '+n; };
 })();
 </script>
 
 <script>setInterval(function(){try{var t=state&&state.room&&state.room.cfg&&state.room.cfg.theme;if(t)BGTheme.sync(t)}catch(e){}},400);</script>
+<style id="up-line">
+.cell .ln{background:var(--ts)!important;color:#1b1200!important;font-size:.62rem!important;font-weight:900!important;padding:1px 5px!important;border-radius:7px!important;box-shadow:0 1px 4px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.8);text-shadow:none}
+.cell.inline{box-shadow:inset 0 0 0 3px var(--ts),0 0 10px rgba(var(--srg),.7)!important}
+.cell.marked.inline{border-color:var(--ts)!important}
+.lnban{text-align:center;background:linear-gradient(135deg,rgba(var(--srg),.28),rgba(var(--rg),.12))!important;animation:lnpop .6s both}
+@keyframes lnpop{0%{transform:scale(.85);opacity:0}100%{transform:scale(1);opacity:1}}
+.btn.pulse:not(:disabled){animation:btnpulse 1.2s infinite}
+@keyframes btnpulse{0%,100%{box-shadow:0 0 0 0 rgba(var(--srg),.8)}50%{box-shadow:0 0 0 10px rgba(var(--srg),0)}}
+#lntoast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:2147483100;background:linear-gradient(135deg,var(--tp),var(--tdeep));color:#fff;border:2px solid var(--ts);border-radius:16px;padding:12px 18px;font-weight:800;box-shadow:0 10px 30px rgba(0,0,0,.45);max-width:92vw;text-align:center;animation:lnpop .4s both}
+</style>
+<script id="up-line-js">
+function lineAlert(n){ try{ var o=document.getElementById('lntoast'); if(o) o.remove(); var d=document.createElement('div'); d.id='lntoast'; d.innerHTML='🎉 '+n+' Line બની ગઈ!<br><small style="font-weight:600">નીચે Claim બટન દબાવો (સાચી/ખોટી છેલ્લે ખબર પડશે)</small>'; document.body.appendChild(d); setTimeout(function(){try{d.remove()}catch(e){}},4500); if(navigator.vibrate) navigator.vibrate([120,60,120]); }catch(e){} }
+</script>
 </body>
 </html>

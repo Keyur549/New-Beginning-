@@ -44,7 +44,7 @@ const CFG_DEF = {
   boxPool: [0,1,2,3,3,4,5],   // 7 Mystery Boxes per round (shuffled for every player)
   lastRoundMult: 2,          // Box points of the LAST round are multiplied by this
   boxSec: 10,                // seconds to pick a Box
-  cardCounts: [4,4,4,4,3,3,3] // answers on each player's card from Round 1..7 (sum must be 25)
+  cardCounts: [3,3,3,4,4,4,4] // answers on each player's card from Round 1..7 (sum must be 25)
 };
 function loadConfig(){
   let c = {};
@@ -58,7 +58,7 @@ function loadConfig(){
 const CFG = loadConfig();
 // per-room overrides (Host can edit Round names / Mystery Box points at Create Room or live from Host Tools)
 function RC(room){ const o=(room&&room.cfgOvr)||{}; return Object.assign({}, CFG, o); }
-function cleanTheme(t){ if(!t||typeof t!=='object') return null; const hx=v=>/^#[0-9a-fA-F]{6}$/.test(String(v||''))?String(v).toLowerCase():null; const p=hx(t.p), s=hx(t.s), bg=hx(t.bg); if(!p||!s||!bg) return null; const o={p,s,bg,id:String(t.id||'custom').replace(/[^a-z0-9_-]/gi,'').slice(0,20)||'custom'}; if(t.rainbow||o.id==='fun') o.rainbow=true; return o; }
+function cleanTheme(t){ if(!t||typeof t!=='object') return null; const hx=v=>{ v=String(v||'').trim(); if(/^#[0-9a-fA-F]{6}$/.test(v)) return v.toLowerCase(); const m=v.match(/^(?:rgb\()?\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*\)?$/i); if(m&&+m[1]<256&&+m[2]<256&&+m[3]<256) return '#'+[m[1],m[2],m[3]].map(x=>(+x).toString(16).padStart(2,'0')).join(''); return null; }; const p=hx(t.p), s=hx(t.s), bg=hx(t.bg); if(!p||!s||!bg) return null; const o={p,s,bg,id:String(t.id||'custom').replace(/[^a-z0-9_-]/gi,'').slice(0,20)||'custom'}; if(t.rainbow||o.id==='fun') o.rainbow=true; return o; }
 function publicCfg(room){ const c=RC(room); return { theme:cleanTheme(c.theme), rounds:CFG.rounds, perRound:CFG.perRound, roundNames:c.roundNames, correctPts:c.correctPts, wrongPts:c.wrongPts, lastMult:c.lastRoundMult, boxSec:c.boxSec, introSec:INTRO_SEC }; }
 const INTRO_SEC = 7.5;
 function cleanNames(a){ return Array.from({length:CFG.rounds},(_,i)=>{ const v=(Array.isArray(a)&&a[i]!=null)?String(a[i]).trim().slice(0,40):''; return v||CFG.roundNames[i]; }); }

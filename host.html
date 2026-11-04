@@ -1576,7 +1576,8 @@ function wheelSVG(numbers, rotation, highlightNumber){
   let studs=''; for(let i=0;i<24;i++){ const a=i*15*Math.PI/180, sx=C+(R+6.5)*Math.cos(a), sy=C+(R+6.5)*Math.sin(a); studs+=`<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="2.6" fill="${i%2?'#fff':'#E53935'}" stroke="#7C2D12" stroke-width=".5"/>`; }
   return `<div style="position:relative;width:284px;margin:10px auto 6px;">
   <svg viewBox="0 0 24 30" width="34" height="42" style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);z-index:3;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))"><path d="M12 29 L2 8 A11 11 0 1 1 22 8 Z" fill="#E53935" stroke="#fff" stroke-width="2"/><circle cx="12" cy="10" r="4" fill="#fff"/></svg>
-  <svg id="wheelSvg" viewBox="0 0 ${2*C} ${2*C}" width="284" height="284" style="transform:rotate(${rotation}deg);will-change:transform;filter:drop-shadow(0 10px 22px rgba(124,58,237,.5));">${defs}<g>${paths}${studs}</g><circle cx="${C}" cy="${C}" r="25" fill="url(#whH)" stroke="#fff" stroke-width="3"/><path d="M${C} ${C-14} l4 9 10 1 -7.5 6.5 2.5 9.5 -9 -5.5 -9 5.5 2.5 -9.5 -7.5 -6.5 10 -1z" fill="#fff" opacity=".95"/></svg>
+  <div style="position:absolute;left:3%;top:3%;width:94%;aspect-ratio:1;border-radius:50%;box-shadow:0 12px 30px rgba(var(--rg),.45)"></div>
+  <svg id="wheelSvg" viewBox="0 0 ${2*C} ${2*C}" width="284" height="284" style="position:relative;transform:rotate(${rotation}deg);will-change:transform;backface-visibility:hidden;">${defs}<g>${paths}${studs}</g><circle cx="${C}" cy="${C}" r="25" fill="url(#whH)" stroke="#fff" stroke-width="3"/><path d="M${C} ${C-14} l4 9 10 1 -7.5 6.5 2.5 9.5 -9 -5.5 -9 5.5 2.5 -9.5 -7.5 -6.5 10 -1z" fill="#fff" opacity=".95"/></svg>
   </div><div class="muted" style="margin-top:2px;font-weight:700">${numbers.length} બાકી</div>`;
 }
 function computeTargetRotation(pos,total){
@@ -1759,8 +1760,8 @@ function qrDataUrl(text){
 }
 function playerLink(){ return location.origin+'/player.html?code='+state.code; }
 async function sharePlayerLink(){
-  const url=playerLink(); const text='જ્ઞાન શોધ Quiz માં જોડાવો! Room Code: '+state.code+'\n'+url;
-  if(navigator.share){ try{ await navigator.share({title:'જ્ઞાન શોધ Quiz',text,url}); return; }catch(e){} }
+  const url=playerLink(); const text='જ્ઞાન શોધ · THE BEGINNING માં જોડાવો! Room Code: '+state.code+'\n'+url;
+  if(navigator.share){ try{ await navigator.share({title:'જ્ઞાન શોધ · THE BEGINNING',text,url}); return; }catch(e){} }
   try{ await navigator.clipboard.writeText(url); alert('Player Link copy થયો:\n'+url); }catch(e){ prompt('Player Link:',url); }
 }
 
@@ -1823,7 +1824,7 @@ function openDashboard(){
   </style>`;
   const html=`${css}<div class="dwrap">
   <div class="dbar"><button class="dbtn" id="thbtn" onclick="dashTheme()">🎨 Theme</button><button class="dbtn" onclick="document.getElementById('dash').requestFullscreen&&document.getElementById('dash').requestFullscreen()">⛶ Full Screen</button><button class="dbtn" onclick="closeDashboard()">✕ બંધ કરો</button></div>
-  <h1><span style="-webkit-text-fill-color:initial">🎴</span> જ્ઞાન શોધ – Lucky Card Quiz Championship</h1><div class="dsub">Final Dashboard · Room ${esc(r.code)}</div>
+  <h1>જ્ઞાન શોધ</h1><div class="dsub" style="letter-spacing:.3em;font-weight:800">THE BEGINNING</div><div class="dsub">Final Dashboard · Room ${esc(r.code)}</div>
   <div class="dtiles">${tile('👥',total,'કુલ Players')}${tile('🏘️',zs.length,'કુલ Zones')}${tile('❓',r.usedIdx.length+'/'+r.questions.length,'પૂછાયેલા Questions')}${tile('📊',avgAll.toFixed(1),'સરેરાશ Final Score')}${tile('🏆',nets.length?Math.max(...nets):0,'સૌથી વધુ Final Score')}</div>
   <div class="dcard" style="margin-bottom:14px"><h2>🏆 Winners</h2><div class="dwins">${wcards}</div>
     <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center">${['line1','line2','line3','line4','line5','full','top3','top2','top1','zone'].filter(k=>w[k]).map(k=>`<button class="dbtn" onclick="wcShare('${k}')">🖼 ${esc(WINNER_LABELS[k])} Card</button>`).join('')}<button class="dbtn" onclick="wcDownloadAll()">⬇ બધા Cards</button></div></div>
@@ -1921,7 +1922,7 @@ function wcDraw(d){
   for(let i=0;i<70;i++){ const x=80+rnd()*(W-160), y=80+rnd()*(H-160); if(x>200&&x<880&&y>430&&y<1000&&rnd()<.8) continue; g.save(); g.translate(x,y); g.rotate(rnd()*6); g.fillStyle=cols[i%5]; g.globalAlpha=.55+rnd()*.4; g.fillRect(-6,-3,12+rnd()*8,6); g.restore(); }
   cardFrame(g,W,H,['#fff1b8','#d4a017','#ffe28a'],'#14083f');
   g.textAlign='center'; g.textBaseline='alphabetic';
-  g.fillStyle='#ffe9a8'; cardFit(g,'🎴 જ્ઞાન શોધ – Lucky Card Quiz',860,46,'800'); g.fillText('🎴 જ્ઞાન શોધ – Lucky Card Quiz',W/2,135);
+  g.fillStyle='#ffe9a8'; cardFit(g,'જ્ઞાન શોધ · THE BEGINNING',860,46,'800'); g.fillText('જ્ઞાન શોધ · THE BEGINNING',W/2,135);
   g.font='120px '+CARD_FF; g.fillStyle='#000'; g.fillText('👑',W/2,290);
   // ribbon
   const rw=900,rh=118,rx=(W-rw)/2,ry=320; const rb=g.createLinearGradient(0,ry,0,ry+rh); rb.addColorStop(0,'#ffe28a'); rb.addColorStop(1,'#d4a017');
@@ -1945,7 +1946,7 @@ function tyDraw(d){
   const rnd=cardRand(11); for(let i=0;i<46;i++){ const x=90+rnd()*(W-180), y=90+rnd()*(H-180); if(x>180&&x<900&&y>230&&y<1150) continue; g.fillStyle=['#d4a017','#F59E0B','#f9a8d4'][i%3]; g.globalAlpha=.5; g.beginPath(); g.arc(x,y,3+rnd()*5,0,7); g.fill(); g.globalAlpha=1; }
   cardFrame(g,W,H,['#e9c46a','#b8860b','#f4d98a'],'#fffaf0');
   g.textAlign='center'; g.textBaseline='alphabetic';
-  g.fillStyle='#5B21B6'; cardFit(g,'🎴 જ્ઞાન શોધ – Lucky Card Quiz',860,46,'800'); g.fillText('🎴 જ્ઞાન શોધ – Lucky Card Quiz',W/2,135);
+  g.fillStyle='#5B21B6'; cardFit(g,'જ્ઞાન શોધ · THE BEGINNING',860,46,'800'); g.fillText('જ્ઞાન શોધ · THE BEGINNING',W/2,135);
   g.font='110px '+CARD_FF; g.fillStyle='#000'; g.fillText('🙏',W/2,280);
   const tg=g.createLinearGradient(240,0,840,0); tg.addColorStop(0,'#6D28D9'); tg.addColorStop(.5,'#6D28D9'); tg.addColorStop(1,'#6D28D9'); g.fillStyle=tg; cardFit(g,'ધન્યવાદ!',800,128,'900',60); g.fillText('ધન્યવાદ!',W/2,430);
   g.strokeStyle='#d4a017'; g.lineWidth=3; g.beginPath(); g.moveTo(340,468); g.lineTo(740,468); g.stroke(); g.fillStyle='#d4a017'; g.beginPath(); g.arc(W/2,468,8,0,7); g.fill();
@@ -2062,7 +2063,7 @@ async function downloadExcel(){
     const thin={style:'thin',color:{argb:'FFCCCCCC'}}; const box={top:thin,left:thin,bottom:thin,right:thin};
     wsS.columns=[{width:8},{width:26},{width:22},{width:18},{width:18},{width:18}];
     let rr=1;
-    wsS.mergeCells('A1:F1'); wsS.getCell('A1').value='🎴 જ્ઞાન શોધ – Lucky Card Quiz Championship';
+    wsS.mergeCells('A1:F1'); wsS.getCell('A1').value='જ્ઞાન શોધ · THE BEGINNING';
     wsS.getCell('A1').font={bold:true,size:20,color:{argb:'FFFFFFFF'}}; wsS.getCell('A1').fill=fill('FF7C3AED'); wsS.getCell('A1').alignment={horizontal:'center',vertical:'middle'}; wsS.getRow(1).height=38;
     wsS.mergeCells('A2:F2'); wsS.getCell('A2').value='Room: '+r.code+'   |   '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
     wsS.getCell('A2').alignment={horizontal:'center'}; wsS.getCell('A2').font={italic:true,color:{argb:'FF555555'}};
@@ -2376,10 +2377,10 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
   return (o||tie)?'<div class="pjclaim">'+o+(tie?'<small>⚖️ Tie-break: '+esc2(tie===true?'સૌથી પહેલા Claim':tie)+'</small>':'')+'</div>':''}
  function html(r){var st=r.status;
   if(st==='active'||st==='spinning'||st==='revealing'||st==='locked'){
-   return '<div class="pjh">જ્ઞાન શોધ</div>'+(r.round!=null?'<div class="pjs">ROUND '+((r.round||0)+1)+'</div>'+RNM(r):'')+(st==='locked'?'<div class="pjfire" style="background:linear-gradient(90deg,#475569,#1e293b);box-shadow:none;animation:none">⏱ સમય પૂરો — '+(((r.usedIdx||[]).filter(function(i){var p_=(r.cfg&&r.cfg.perRound)||5;return Math.floor(i/p_)===(r.round||0)}).length>=((r.cfg&&r.cfg.perRound)||5))?'Round પૂરો, Mystery Box શરૂ કરો':'હવે Spin દબાવો')+'</div>':'')+stage(r)+(st==='active'&&!(r.usedIdx||[]).length?'<div class="pjs">Game શરૂ થાય છે…</div>':'')+(st==='revealing'?'<div class="pjs">હવે પ્રશ્ન આવે છે…</div>':'')+bars(r)+ctl(r)}
+   return '<div class="pjh"><img class="pjlogo" src="logo.png" alt="જ્ઞાન શોધ · THE BEGINNING"></div>'+(r.round!=null?'<div class="pjs">ROUND '+((r.round||0)+1)+'</div>'+RNM(r):'')+(st==='locked'?'<div class="pjfire" style="background:linear-gradient(90deg,#475569,#1e293b);box-shadow:none;animation:none">⏱ સમય પૂરો — '+(((r.usedIdx||[]).filter(function(i){var p_=(r.cfg&&r.cfg.perRound)||5;return Math.floor(i/p_)===(r.round||0)}).length>=((r.cfg&&r.cfg.perRound)||5))?'Round પૂરો, Mystery Box શરૂ કરો':'હવે Spin દબાવો')+'</div>':'')+stage(r)+(st==='active'&&!(r.usedIdx||[]).length?'<div class="pjs">Game શરૂ થાય છે…</div>':'')+(st==='revealing'?'<div class="pjs">હવે પ્રશ્ન આવે છે…</div>':'')+bars(r)+ctl(r)}
   if(st==='box'){var pk=0,tp=Object.keys(r.players||{}),rm=Math.max(0,Math.ceil(((r.boxEnd||0)-Date.now())/1000));tp.forEach(function(n){if(((r.players[n].boxPick||[])[r.round])!=null)pk++});
-   return '<div class="pjh">જ્ઞાન શોધ</div><div class="pjs">ROUND '+((r.round||0)+1)+' પૂરો</div>'+RNM(r)+'<div class="pjboxes">'+[1,2,3,4,5,6,7].map(function(i){return '<div class="mbox">🎁<small>'+i+'</small></div>'}).join('')+'</div><div class="pjs">Mystery Box</div><div class="pjt'+(rm<=10&&!r.boxAuto?' lo':'')+'">'+(r.boxAuto?'⏱':rm+'s')+'</div><div class="pjs">✅ '+pk+' / '+tp.length+' Players એ Box પસંદ કર્યું</div>'+ctl(r)}
-  if(st==='opening')return '<div class="pjh">જ્ઞાન શોધ</div><div class="pjbig">🏁</div><div class="pjs">બધા Round પૂરા</div><div class="pjs">Mystery Box ના Result Players ને દેખાય છે</div>'+ctl(r)
+   return '<div class="pjh"><img class="pjlogo" src="logo.png" alt="જ્ઞાન શોધ · THE BEGINNING"></div><div class="pjs">ROUND '+((r.round||0)+1)+' પૂરો</div>'+RNM(r)+'<div class="pjboxes">'+[1,2,3,4,5,6,7].map(function(i){return '<div class="mbox">🎁<small>'+i+'</small></div>'}).join('')+'</div><div class="pjs">Mystery Box</div><div class="pjt'+(rm<=10&&!r.boxAuto?' lo':'')+'">'+(r.boxAuto?'⏱':rm+'s')+'</div><div class="pjs">✅ '+pk+' / '+tp.length+' Players એ Box પસંદ કર્યું</div>'+ctl(r)}
+  if(st==='opening')return '<div class="pjh"><img class="pjlogo" src="logo.png" alt="જ્ઞાન શોધ · THE BEGINNING"></div><div class="pjbig">🏁</div><div class="pjs">બધા Round પૂરા</div><div class="pjs">Mystery Box ના Result Players ને દેખાય છે</div>'+ctl(r)
   var h=html0(r);
   if(st==='question'){h=h.replace(/<div class="pjs">પ્રશ્ન \d+[^<]*<\/div>/,r.round!=null?'<div class="pjs">Round '+((r.round||0)+1)+'</div>':'')}
   if(st==='lobby'){h=h.replace('<div class="pjrow">','<div id="pjjw"></div><div class="pjrow">')}
@@ -2403,7 +2404,7 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
   return rem>0?'<div class="pjs">⏳ Join થવાનો બાકી સમય</div><div class="pjt'+(rem<=30?' lo':'')+'">'+m+':'+(sc<10?'0':'')+sc+'</div>':'<div class="pjfire">⏰ Join સમય પૂરો — હવે Game શરૂ કરો</div>'}
  function html0(r){
   var st=r.status,gm=document.title.replace(/^.*?[—\-–]\s*/,'').replace(/Host\s*/,'');
-  var head='<div class="pjh">જ્ઞાન શોધ</div>';
+  var head='<div class="pjh"><img class="pjlogo" src="logo.png" alt="જ્ઞાન શોધ · THE BEGINNING"></div>';
   if(st==='lobby'){var u='';try{u=qrDataUrl(playerLink())}catch(e){}
    return head+'<div class="pjrow"><div>'+(u?'<img class="pjqr" src="'+u+'">':'')+'</div><div><div class="pjs">Room Code</div><div class="pjbig">'+esc2(r.code)+'</div><div class="pjs">📲 QR Scan કરો અને Join થાઓ</div><div class="pjn">👥 '+Object.keys(r.players||{}).length+'</div></div></div>'}
   if(st==='question'||st==='locked'){var q=(r.questions&&r.questions[r.curIdx])||{},rem=r.paused?Math.ceil((r.pausedMs||0)/1000):Math.max(0,Math.ceil(((r.timerEnd||0)-Date.now())/1000));
@@ -2421,7 +2422,7 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
  function onPoll(){try{if(!open||typeof state==='undefined'||!state.code)return;socket.emit('host:online',{code:state.code},function(d){if(d&&d.ok){ON={on:d.online,tot:d.total,off:d.off||[]}}})}catch(e){}}
  function onBadge(){if(ON.on==null)return '';var w=ON.tot>0&&ON.on<ON.tot;return '<div class="pjon'+(w?' w':'')+'">🟢 '+ON.on+' / '+ON.tot+' Online'+(w?'<small>📵 '+(ON.tot-ON.on)+' offline'+(ON.off&&ON.off.length?': '+esc2(ON.off.slice(0,3).join(', '))+(ON.off.length>3?'…':''):'')+'</small>':'')+'</div>'}
  function paint(){paint0();var oo=document.getElementById('pj');if(open&&oo){var bd=oo.querySelector('.pjon'),nb=onBadge();if(!nb){if(bd)bd.remove()}else if(bd){if(bd.outerHTML!==nb)bd.outerHTML=nb}else oo.insertAdjacentHTML('afterbegin',nb)}var o=document.getElementById('pj'),r=(typeof state!=='undefined')&&state.room;if(open&&o&&r&&r.status==='lobby'){var w=o.querySelector('#pjjw');if(w)w.innerHTML=jtHTML(r)}}
- function paint0(){if(!open)return;try{var _w=state.room;if(_w&&_w.status==='revealed'){var _O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[],_s=_w.revealStep||0;if(_s!==WV.s){WV.s=_s;clearTimeout(WV.t);if(_s>=1&&_s<=_O.length){document.body.classList.add('wvhide');WV.t=setTimeout(function(){document.body.classList.remove('wvhide')},10000)}else document.body.classList.remove('wvhide')}}else if(WV.s!==null){WV.s=null;clearTimeout(WV.t);document.body.classList.remove('wvhide')}}catch(e){}try{var _q=state.room;if(_q&&_q.status==='question'&&_q.curIdx!==TW.idx){TW.idx=_q.curIdx;TW.t0=Date.now()}else if(_q&&_q.status!=='question')TW.idx=null}catch(e){}if(typeof spinning!=="undefined"&&spinning)return;var r=(typeof state!=='undefined')&&state.room;var o=document.getElementById('pj');if(!o||!r)return;pvAnnounce(r);sfxTick(r);var h=html(r);var jw=o.querySelector('#pjjw');if(h!==last){last=h;o.querySelector('.pjin').innerHTML=h}}
+ var _lps=null;function paint0(){if(!open)return;try{var _r0=state.room;if(typeof spinning!=='undefined'&&spinning&&_r0&&_r0.status===_lps)return;_lps=_r0&&_r0.status}catch(e){}try{var _w=state.room;if(_w&&_w.status==='revealed'){var _O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[],_s=_w.revealStep||0;if(_s!==WV.s){WV.s=_s;clearTimeout(WV.t);if(_s>=1&&_s<=_O.length){document.body.classList.add('wvhide');WV.t=setTimeout(function(){document.body.classList.remove('wvhide')},10000)}else document.body.classList.remove('wvhide')}}else if(WV.s!==null){WV.s=null;clearTimeout(WV.t);document.body.classList.remove('wvhide')}}catch(e){}try{var _q=state.room;if(_q&&_q.status==='question'&&_q.curIdx!==TW.idx){TW.idx=_q.curIdx;TW.t0=Date.now()}else if(_q&&_q.status!=='question')TW.idx=null}catch(e){}if(typeof spinning!=="undefined"&&spinning)return;var r=(typeof state!=='undefined')&&state.room;var o=document.getElementById('pj');if(!o||!r)return;pvAnnounce(r);sfxTick(r);var h=html(r);var jw=o.querySelector('#pjjw');if(h!==last){last=h;o.querySelector('.pjin').innerHTML=h}}
  function toggle(on){open=(on===undefined)?!open:on;var o=document.getElementById('pj');o.style.display=open?'flex':'none';if(open){last='';paint();try{var de=document.documentElement;if(de.requestFullscreen)de.requestFullscreen()}catch(e){}iv=setInterval(paint,500);tw=setInterval(twTick,60);onPoll();onT=setInterval(onPoll,3000)}else{clearInterval(iv);clearInterval(tw);clearInterval(onT);try{o.querySelector('.pjin').innerHTML='';last=''}catch(e){}try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}}}
  function init(){var o=document.createElement('div');o.id='pj';o.style.display='none';o.innerHTML='<button class="pjx" aria-label="Close">✕</button><button class="pjv" aria-label="Voice">🔊</button><div class="pjin"></div>';o.querySelector('.pjv').onclick=function(){PV.on=!PV.on;this.textContent=PV.on?'🔊':'🔇';try{speechSynthesis.cancel()}catch(e){}};document.body.insertBefore(o,document.body.firstChild);o.querySelector('.pjin').onclick=function(e){var t=e.target.closest&&e.target.closest('[data-act]');if(!t)return;var a=t.getAttribute('data-act');if(a&&a.indexOf('t_')===0){hostSetTimer(+a.slice(2));return}var f={start:'hostStart',spin:'hostSpin',pause:'hostPause',resume:'hostResume',skip:'hostSkipTimer',reveal:'hostReveal',next:'hostNextWinner',end:'hostEnd',startbox:'hostStartBox',nextround:'hostNextRound',dash:'openDashboard',xls:'downloadExcel'}[a];if(a==='sc'){var r3=state.room;hostScReveal(!(r3&&r3.scReveal));return}if(a&&a.indexOf('draw_')===0){hostSetDraw(a.slice(5));return}if(a==='jt5'){socket.emit('host:joinTimer',{code:state.code,sec:300});return}if(a==='jtp'){var rr=state.room,rm=Math.max(0,Math.ceil(((rr&&rr.joinEnd||0)-Date.now())/1000));socket.emit('host:joinTimer',{code:state.code,sec:rm+60});return}if(a==='jtx'){socket.emit('host:joinTimer',{code:state.code,sec:0});return}try{if(f&&typeof window[f]==='function')window[f]();else if(f)eval(f+'()')}catch(x){}};o.querySelector('.pjx').onclick=function(){toggle(false)};
   var b=document.createElement('button');b.id='hproj';b.type='button';b.setAttribute('aria-label','Projector');b.textContent='📺';b.onclick=function(){toggle(true)};document.body.appendChild(b);
@@ -2502,7 +2503,7 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
   var lab=d.label,ps=cfit(g,lab,W-500,66,800,CSERIF,34);g.font='800 '+ps+'px '+CSERIF;var pw=g.measureText(lab).width+120;
   g.fillStyle=A;g.beginPath();g.roundRect(W/2-pw/2,765,pw,104,52);g.fill();g.fillStyle='#fffaf0';g.fillText(lab,W/2,837);
   g.fillStyle='#3b2a00';var dt0=d.detail||'';if(dt0){var dsz=cfit(g,dt0,W-300,44,700,CSERIF,24);g.font='700 '+dsz+'px '+CSERIF;g.fillText(dt0,W/2,945)}
-  var ev=C.event||'જ્ઞાન શોધ – Lucky Card Quiz Championship';g.fillStyle='#6b5a2e';var es=cfit(g,ev,W-300,32,700,CSANS,20);g.font='700 '+es+'px '+CSANS;g.fillText(ev,W/2,1020);
+  var ev=C.event||'જ્ઞાન શોધ · THE BEGINNING';g.fillStyle='#6b5a2e';var es=cfit(g,ev,W-300,32,700,CSANS,20);g.font='700 '+es+'px '+CSANS;g.fillText(ev,W/2,1020);
   var dt=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
   g.font='600 28px '+CSANS;g.textAlign='left';g.fillText('તારીખ: '+dt,150,1135);g.textAlign='right';g.fillText('Room: '+(d.code||''),W-150,1135);
   g.textAlign='center';if(C.signer){g.fillStyle='#1f1400';var ss=cfit(g,C.signer,420,40,700,CSERIF,22);g.font='italic 700 '+ss+'px '+CSERIF;g.fillText(C.signer,W/2,1100)}
@@ -2531,7 +2532,7 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
  function zs(r){try{return zoneStats.length>=2?zoneStats(r,function(n){return playerResults(r,n)}):zoneStats(r)}catch(e){return []}}
  function reportPages(){var r=state.room,pg=[],W=1240,H=1754,ws=winners(),Z=zs(r)||[];
   function page(){var c=document.createElement('canvas');c.width=W;c.height=H;var g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,W,H);g.fillStyle='#5B21B6';g.fillRect(0,0,W,16);g.textAlign='left';pg.push(c);return g}
-  var g=page();g.fillStyle='#5B21B6';g.font='900 54px '+SERIF;g.fillText('જ્ઞાન શોધ – Event Report',80,130);g.fillStyle='#555';g.font='600 28px '+SANS;g.fillText((gameName()||'')+' · Room '+r.code+' · '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'}),80,180);
+  var g=page();g.fillStyle='#5B21B6';g.font='900 54px '+SERIF;g.fillText('જ્ઞાન શોધ · THE BEGINNING – Event Report',80,130);g.fillStyle='#555';g.font='600 28px '+SANS;g.fillText((gameName()||'')+' · Room '+r.code+' · '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'}),80,180);
   var np=Object.keys(r.players||{}).length,tiles=[['👥 Players',np],['🏘 Zones',Z.length],['❓ Questions',(r.usedIdx||[]).length+'/'+(r.questions||[]).length]];
   tiles.forEach(function(t,i){var x=80+i*370;g.fillStyle='#f3e8ff';g.beginPath();g.roundRect(x,230,340,150,24);g.fill();g.fillStyle='#5B21B6';g.font='900 56px '+SANS;g.textAlign='center';g.fillText(String(t[1]),x+170,310);g.font='600 26px '+SANS;g.fillText(t[0],x+170,356);g.textAlign='left'});
   g.fillStyle='#1f1400';g.font='900 38px '+SERIF;g.fillText('🏆 Winners',80,470);var y=520;
@@ -2842,14 +2843,18 @@ function readCfgFields(){ if(!document.getElementById('rn0')) return {}; var rn=
  var cfgT=null; try{fetch('/api/config').then(function(x){return x.json()}).then(function(j){cfgT=j&&j.theme; if(!ld()&&cfgT) BGTheme.sync(cfgT)}).catch(function(){})}catch(e){}
  setInterval(function(){ try{ var r=state&&state.room; var t=r&&r.cfg&&r.cfg.theme; if(t) BGTheme.sync(t); }catch(e){} },400);
  function push(t){ sv(t); BGTheme.apply(t); try{ if(state.code) socket.emit('host:setTheme',{code:state.code,theme:t},function(x){var m=document.getElementById('thmsg'); if(m) m.textContent=(x&&x.ok)?'✅ Players ને પણ નવા colours દેખાશે':'⚠️ Save ન થયું'}); }catch(e){} }
+
+ function pc(v){ v=String(v||'').trim(); var m=v.match(/^#?([0-9a-f]{6})$/i); if(m) return '#'+m[1].toLowerCase(); m=v.match(/^#?([0-9a-f])([0-9a-f])([0-9a-f])$/i); if(m) return ('#'+m[1]+m[1]+m[2]+m[2]+m[3]+m[3]).toLowerCase(); m=v.match(/(\d{1,3})\D+(\d{1,3})\D+(\d{1,3})/); if(m&&+m[1]<256&&+m[2]<256&&+m[3]<256){ return '#'+[m[1],m[2],m[3]].map(function(x){x=(+x).toString(16);return x.length<2?'0'+x:x}).join(''); } return null; }
+ function rd(d,k){ var c=pc(d.querySelector('#'+k+'c').value); return c||d.querySelector('#'+k).value; }
  function card(){
   var cur=(BGTheme.get()||BGTheme.PRESETS.fun), P=BGTheme.PRESETS, h='';
   Object.keys(P).forEach(function(k){var t=P[k],D=BGTheme.derive(t);
    h+='<button type="button" class="thp" data-k="'+k+'" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;border:2px solid '+(cur.p===t.p&&cur.s===t.s&&cur.bg===t.bg?'var(--tp)':'transparent')+';background:#fff;cursor:pointer;font:inherit;font-weight:700;text-align:left"><span style="display:flex;border-radius:8px;overflow:hidden;flex:none"><i style="width:18px;height:28px;background:'+t.p+'"></i><i style="width:18px;height:28px;background:'+t.s+'"></i><i style="width:18px;height:28px;background:'+t.bg+';border:1px solid #ddd"></i></span><span>'+t.n+'</span></button>'});
   var d=document.createElement('details'); d.id='thcard'; d.className='card';
-  d.innerHTML='<summary style="cursor:pointer;font-weight:800;font-size:1.05rem">🎨 Game ના Colours બદલો</summary><div class="muted" style="margin:6px 0">એક Theme પસંદ કરો અથવા પોતાના colours બનાવો. Wheel, Mystery Box, Round Intro, Card — બધું બદલાઈ જશે અને Players ને પણ તરત દેખાશે. તમારી છેલ્લી પસંદગી આવતી Game માં પણ યાદ રહેશે.</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px">'+h+'</div><div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:10px"><label style="font-weight:700">Main <input type="color" id="thp" value="'+cur.p+'" style="vertical-align:middle;width:46px;height:34px;padding:0;border:0;background:none"></label><label style="font-weight:700">Accent <input type="color" id="ths" value="'+cur.s+'" style="vertical-align:middle;width:46px;height:34px;padding:0;border:0;background:none"></label><label style="font-weight:700">Background <input type="color" id="thb" value="'+cur.bg+'" style="vertical-align:middle;width:46px;height:34px;padding:0;border:0;background:none"></label><button type="button" class="btn" id="thgo" style="margin:0">✔ Apply</button></div><div class="muted" id="thmsg" style="margin-top:6px"></div>';
-  d.querySelectorAll('.thp').forEach(function(b){b.onclick=function(){var t=Object.assign({id:b.getAttribute('data-k')},P[b.getAttribute('data-k')]); push(t); d.querySelector('#thp').value=t.p;d.querySelector('#ths').value=t.s;d.querySelector('#thb').value=t.bg; d.querySelectorAll('.thp').forEach(function(x){x.style.borderColor=x===b?'var(--tp)':'transparent'})}});
-  d.querySelector('#thgo').onclick=function(){push({id:'custom',n:'Custom',p:d.querySelector('#thp').value,s:d.querySelector('#ths').value,bg:d.querySelector('#thb').value})};
+  d.innerHTML='<summary style="cursor:pointer;font-weight:800;font-size:1.05rem">🎨 Game ના Colours બદલો</summary><div class="muted" style="margin:6px 0">એક Theme પસંદ કરો અથવા પોતાના colours બનાવો. Wheel, Mystery Box, Round Intro, Card — બધું બદલાઈ જશે અને Players ને પણ તરત દેખાશે. તમારી છેલ્લી પસંદગી આવતી Game માં પણ યાદ રહેશે.</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px">'+h+'</div><div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:10px"><label style="font-weight:700">Main <input type="color" id="thp" value="'+cur.p+'" style="vertical-align:middle;width:46px;height:34px;padding:0;border:0;background:none"> <input type="text" id="thpc" value="'+cur.p+'" placeholder="#RRGGBB  અથવા  R,G,B" style="width:130px;margin:0;vertical-align:middle"></label><label style="font-weight:700">Accent <input type="color" id="ths" value="'+cur.s+'" style="vertical-align:middle;width:46px;height:34px;padding:0;border:0;background:none"> <input type="text" id="thsc" value="'+cur.s+'" placeholder="#RRGGBB  અથવા  R,G,B" style="width:130px;margin:0;vertical-align:middle"></label><label style="font-weight:700">Background <input type="color" id="thb" value="'+cur.bg+'" style="vertical-align:middle;width:46px;height:34px;padding:0;border:0;background:none"> <input type="text" id="thbc" value="'+cur.bg+'" placeholder="#RRGGBB  અથવા  R,G,B" style="width:130px;margin:0;vertical-align:middle"></label><button type="button" class="btn" id="thgo" style="margin:0">✔ Apply</button></div><div class="muted" id="thmsg" style="margin-top:6px"></div>';
+  d.querySelectorAll('.thp').forEach(function(b){b.onclick=function(){var t=Object.assign({id:b.getAttribute('data-k')},P[b.getAttribute('data-k')]); push(t); d.querySelector('#thp').value=d.querySelector('#thpc').value=t.p;d.querySelector('#ths').value=d.querySelector('#thsc').value=t.s;d.querySelector('#thb').value=d.querySelector('#thbc').value=t.bg; d.querySelectorAll('.thp').forEach(function(x){x.style.borderColor=x===b?'var(--tp)':'transparent'})}});
+  ['thp','ths','thb'].forEach(function(k){ var pk=d.querySelector('#'+k),tx=d.querySelector('#'+k+'c'); pk.oninput=function(){tx.value=pk.value}; tx.oninput=function(){var c=pc(tx.value); if(c) pk.value=c}; });
+  d.querySelector('#thgo').onclick=function(){ var bad=['thp','ths','thb'].filter(function(k){return !pc(d.querySelector('#'+k+'c').value)}); if(bad.length){ d.querySelector('#thmsg').textContent='⚠️ Colour code barabar nathi. Example: #1F3A7A athva 31,58,122'; return; } push({id:'custom',n:'Custom',p:rd(d,'thp'),s:rd(d,'ths'),bg:rd(d,'thb')}); };
   return d; }
  var _r=render;
  render=function(){
@@ -2864,5 +2869,23 @@ function readCfgFields(){ if(!document.getElementById('rn0')) return {}; var rn=
 })();
 </script>
 
+<style id="up-fit">
+.pjlogo{height:clamp(56px,13vh,150px);width:auto;max-width:70vw;display:block;margin:0 auto;filter:drop-shadow(0 4px 14px rgba(0,0,0,.55))}
+.pjh{opacity:1!important}
+#pj:has(.pjq) .pjlogo{height:clamp(44px,9vh,100px)}
+#pj:has(.pjw) .pjlogo{height:clamp(46px,10vh,120px)}
+#pj:has(.pjw){overflow:hidden!important}
+#pj:has(.pjw) .pjin{gap:.6vh!important;padding-bottom:0!important}
+#pj:has(.pjw) .pjw{display:flex;flex-direction:column;align-items:center;gap:.5vh}
+#pj:has(.pjw) .pjc{font-size:clamp(1.6rem,6vh,4rem)!important;line-height:1}
+#pj:has(.pjw) .pjl{font-size:clamp(1.3rem,5.5vh,3.6rem)!important;line-height:1.15!important}
+#pj:has(.pjw) .pjav{font-size:clamp(3rem,15vh,9rem)!important;line-height:1.05}
+#pj:has(.pjw) .pjname{font-size:clamp(2.2rem,11vh,7rem)!important;line-height:1.2!important;max-width:94vw}
+#pj:has(.pjw) .pjzn{font-size:clamp(1rem,3.6vh,2.2rem)!important;margin-top:0!important;padding:.4vh 22px}
+#pj:has(.pjw) .pjsc{font-size:clamp(1.2rem,5.2vh,3.2rem)!important;line-height:1.2!important}
+#pj:has(.pjw) .pjclaim{font-size:clamp(1rem,3.8vh,2.4rem)!important;padding:.6vh 22px;margin-top:.6vh}
+#pj:has(.pjw) .pjclaim small{font-size:.55em}
+#pj:has(.pjw) .pjfw{font-size:clamp(1.2rem,4.5vh,3rem)!important;line-height:1.1}
+</style>
 </body>
 </html>

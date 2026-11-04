@@ -23,13 +23,13 @@
   "lastRoundMult": 2,
   "boxSec": 10,
   "cardCounts": [
-    4,
-    4,
-    4,
-    4,
     3,
     3,
-    3
+    3,
+    4,
+    4,
+    4,
+    4
   ],
   "_theme_help": "theme = game na default colours (optional). Example: {\"id\":\"navy\",\"p\":\"#1F3A7A\",\"s\":\"#D4A437\",\"bg\":\"#F6EEDA\"}. Host lobby ma '🎨 Game ના Colours' thi pan badli shakay."
 }
