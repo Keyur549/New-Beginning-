@@ -120,7 +120,7 @@ input:focus,select:focus{outline:none;border-color:var(--pl);box-shadow:0 0 0 3p
 
 /* ---- projector: wheel + host controls + grand winner ---- */
 #pj .pjin{padding-bottom:96px}
-#pj .pjstg div[style*="width:284px"]{width:min(60vh,86vw)!important}#pj .pjstg div[style*="width:284px"]>div{font-size:clamp(24px,6vh,52px)!important;top:-2vh!important}
+#pj .pjstg div[style*="width:284px"]{width:min(60vh,86vw)!important}
 #pj .pjin{margin:auto;gap:8px}#pj .pjav{font-size:clamp(4rem,21vh,12rem)}#pj .pjc{font-size:clamp(2rem,8vh,6rem)}#pj .pjname{font-size:clamp(2rem,10vh,5.5rem)}#pj .pjfw{font-size:clamp(1.6rem,6vh,4rem)}#pj .pjl{font-size:clamp(1.4rem,6vh,4rem)}
 #pj svg#wheelSvg{width:min(60vh,86vw);height:auto}
 #pj .drum{transform:scale(1.5);margin:40px 0}#pj .dice{transform:scale(1.6);margin:30px 0}#pj .slots{transform:scale(1.5);margin:30px 0}
@@ -1585,7 +1585,7 @@ function wheelSVG(numbers, rotation, highlightNumber){
   paths+=`<g class="wsegs">${wheelSegs(numbers,highlightNumber)}</g>`;
   let studs=''; for(let i=0;i<24;i++){ const a=i*15*Math.PI/180, sx=C+(R+6.5)*Math.cos(a), sy=C+(R+6.5)*Math.sin(a); studs+=`<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="2.6" fill="${i%2?'#fff':'#E53935'}" stroke="#7C2D12" stroke-width=".5"/>`; }
   return `<div style="position:relative;width:284px;margin:10px auto 6px;">
-  <svg viewBox="0 0 24 30" width="34" height="42" style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);z-index:3;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))"><path d="M12 29 L2 8 A11 11 0 1 1 22 8 Z" fill="#E53935" stroke="#fff" stroke-width="2"/><circle cx="12" cy="10" r="4" fill="#fff"/></svg>
+  <svg viewBox="-3 -6 30 38" style="position:absolute;width:14%;height:auto;top:-7%;left:50%;transform:translateX(-50%);z-index:3;overflow:visible;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))"><path d="M12 29 L2 8 A11 11 0 1 1 22 8 Z" fill="#E53935" stroke="#fff" stroke-width="2"/><circle cx="12" cy="10" r="4" fill="#fff"/></svg>
   <div style="position:absolute;left:3%;top:3%;width:94%;aspect-ratio:1;border-radius:50%;box-shadow:0 12px 30px rgba(var(--rg),.45)"></div>
   <svg id="wheelSvg" viewBox="0 0 ${2*C} ${2*C}" width="284" height="284" style="position:relative;transform:rotate(${rotation}deg);will-change:transform;backface-visibility:hidden;">${defs}<g>${paths}${studs}</g><circle cx="${C}" cy="${C}" r="25" fill="url(#whH)" stroke="#fff" stroke-width="3"/><path d="M${C} ${C-14} l4 9 10 1 -7.5 6.5 2.5 9.5 -9 -5.5 -9 5.5 2.5 -9.5 -7.5 -6.5 10 -1z" fill="#fff" opacity=".95"/></svg>
   </div><div class="muted" style="margin-top:2px;font-weight:700">${numbers.length} બાકી</div>`;
