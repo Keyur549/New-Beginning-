@@ -1,3 +1,8 @@
+# 🆕 Update 3
+- Projector par Logo/Name nathi. Zone Winner ma Zone naam + sarerash Score + kul + Players ek j screen ma. Score winners ma Score + Sacha/Khota.
+- Projector no colour: Host Lobby > 🎨 Game ના Colours > "📺 Projector Screen નો Colour" (Background + Glow, RGB code pan). "↺ Theme jevo" thi reset.
+- Certificate ma default Logo (logo.png) aave; Certificate editor ma potano logo upload karo to e vaparay.
+
 # 🆕 Latest updates
 - Projector: winner screen ma naam + Score + Claim time badhu ek j screen ma (scroll nahi). Projector par game nu Logo. Wheel spin smooth (host jevu).
 - Player: Join dabavta j pehla Logo Splash, pachhi j card. Line bane tyare banner + alert + Claim button chamke (sachi/khoti last ma). L1/L2 tag clear.

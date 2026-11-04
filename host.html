@@ -2371,16 +2371,18 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
   var n=null;   // big white number beside the wheel removed
   return '<div class="pjstg"><div class="pjwh">'+h+'</div>'+(n!=null?'<div class="pjnum"><div class="pjs">પ્રશ્ન નંબર</div><div class="pjbig pjw">'+n+'</div></div>':'')+'</div>'}
  function claim(r,k){var w=r.winners||{},ms=w[k+'_ms'],ts=w[k+'_ts'],tie=w[k+'_tie'],o='';
+  if(k==='zone'||k==='zonefull'){var zn=String(w[k]||'').trim().toLowerCase(),cnt=Object.keys(r.players||{}).filter(function(n){return String((r.players[n]||{}).zone||'').trim().toLowerCase()===zn}).length;if(w[k]&&w.zone_avg!=null)o='🎯 સરેરાશ Score '+esc2(w.zone_avg)+' · Σ કુલ '+esc2(w.zone_total)+' · 👥 '+cnt+' Players';return o?'<div class="pjclaim">'+o+'</div>':''}
   if(ms!=null&&typeof fmtDur==='function')o+='⏱ '+esc2(fmtDur(ms))+' માં Claim';
   if(w[k+'_score']!=null)o+=(o?' · ':'')+'🎯 Score '+esc2(w[k+'_score']);
+  if(w[k+'_correct']!=null)o+=' · ✅ '+esc2(w[k+'_correct'])+' · ❌ '+esc2(w[k+'_wrong']);
   if(ts){try{o+=(o?' · ':'')+'🕒 '+new Date(ts).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}catch(e){}}
   return (o||tie)?'<div class="pjclaim">'+o+(tie?'<small>⚖️ Tie-break: '+esc2(tie===true?'સૌથી પહેલા Claim':tie)+'</small>':'')+'</div>':''}
  function html(r){var st=r.status;
   if(st==='active'||st==='spinning'||st==='revealing'||st==='locked'){
-   return '<div class="pjh"><img class="pjlogo" src="logo.png" alt="જ્ઞાન શોધ · THE BEGINNING"></div>'+(r.round!=null?'<div class="pjs">ROUND '+((r.round||0)+1)+'</div>'+RNM(r):'')+(st==='locked'?'<div class="pjfire" style="background:linear-gradient(90deg,#475569,#1e293b);box-shadow:none;animation:none">⏱ સમય પૂરો — '+(((r.usedIdx||[]).filter(function(i){var p_=(r.cfg&&r.cfg.perRound)||5;return Math.floor(i/p_)===(r.round||0)}).length>=((r.cfg&&r.cfg.perRound)||5))?'Round પૂરો, Mystery Box શરૂ કરો':'હવે Spin દબાવો')+'</div>':'')+stage(r)+(st==='active'&&!(r.usedIdx||[]).length?'<div class="pjs">Game શરૂ થાય છે…</div>':'')+(st==='revealing'?'<div class="pjs">હવે પ્રશ્ન આવે છે…</div>':'')+bars(r)+ctl(r)}
+   return '<div class="pjh"></div>'+(r.round!=null?'<div class="pjs">ROUND '+((r.round||0)+1)+'</div>'+RNM(r):'')+(st==='locked'?'<div class="pjfire" style="background:linear-gradient(90deg,#475569,#1e293b);box-shadow:none;animation:none">⏱ સમય પૂરો — '+(((r.usedIdx||[]).filter(function(i){var p_=(r.cfg&&r.cfg.perRound)||5;return Math.floor(i/p_)===(r.round||0)}).length>=((r.cfg&&r.cfg.perRound)||5))?'Round પૂરો, Mystery Box શરૂ કરો':'હવે Spin દબાવો')+'</div>':'')+stage(r)+(st==='active'&&!(r.usedIdx||[]).length?'<div class="pjs">Game શરૂ થાય છે…</div>':'')+(st==='revealing'?'<div class="pjs">હવે પ્રશ્ન આવે છે…</div>':'')+bars(r)+ctl(r)}
   if(st==='box'){var pk=0,tp=Object.keys(r.players||{}),rm=Math.max(0,Math.ceil(((r.boxEnd||0)-Date.now())/1000));tp.forEach(function(n){if(((r.players[n].boxPick||[])[r.round])!=null)pk++});
-   return '<div class="pjh"><img class="pjlogo" src="logo.png" alt="જ્ઞાન શોધ · THE BEGINNING"></div><div class="pjs">ROUND '+((r.round||0)+1)+' પૂરો</div>'+RNM(r)+'<div class="pjboxes">'+[1,2,3,4,5,6,7].map(function(i){return '<div class="mbox">🎁<small>'+i+'</small></div>'}).join('')+'</div><div class="pjs">Mystery Box</div><div class="pjt'+(rm<=10&&!r.boxAuto?' lo':'')+'">'+(r.boxAuto?'⏱':rm+'s')+'</div><div class="pjs">✅ '+pk+' / '+tp.length+' Players એ Box પસંદ કર્યું</div>'+ctl(r)}
-  if(st==='opening')return '<div class="pjh"><img class="pjlogo" src="logo.png" alt="જ્ઞાન શોધ · THE BEGINNING"></div><div class="pjbig">🏁</div><div class="pjs">બધા Round પૂરા</div><div class="pjs">Mystery Box ના Result Players ને દેખાય છે</div>'+ctl(r)
+   return '<div class="pjh"></div><div class="pjs">ROUND '+((r.round||0)+1)+' પૂરો</div>'+RNM(r)+'<div class="pjboxes">'+[1,2,3,4,5,6,7].map(function(i){return '<div class="mbox">🎁<small>'+i+'</small></div>'}).join('')+'</div><div class="pjs">Mystery Box</div><div class="pjt'+(rm<=10&&!r.boxAuto?' lo':'')+'">'+(r.boxAuto?'⏱':rm+'s')+'</div><div class="pjs">✅ '+pk+' / '+tp.length+' Players એ Box પસંદ કર્યું</div>'+ctl(r)}
+  if(st==='opening')return '<div class="pjh"></div><div class="pjbig">🏁</div><div class="pjs">બધા Round પૂરા</div><div class="pjs">Mystery Box ના Result Players ને દેખાય છે</div>'+ctl(r)
   var h=html0(r);
   if(st==='question'){h=h.replace(/<div class="pjs">પ્રશ્ન \d+[^<]*<\/div>/,r.round!=null?'<div class="pjs">Round '+((r.round||0)+1)+'</div>':'')}
   if(st==='lobby'){h=h.replace('<div class="pjrow">','<div id="pjjw"></div><div class="pjrow">')}
@@ -2404,7 +2406,7 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
   return rem>0?'<div class="pjs">⏳ Join થવાનો બાકી સમય</div><div class="pjt'+(rem<=30?' lo':'')+'">'+m+':'+(sc<10?'0':'')+sc+'</div>':'<div class="pjfire">⏰ Join સમય પૂરો — હવે Game શરૂ કરો</div>'}
  function html0(r){
   var st=r.status,gm=document.title.replace(/^.*?[—\-–]\s*/,'').replace(/Host\s*/,'');
-  var head='<div class="pjh"><img class="pjlogo" src="logo.png" alt="જ્ઞાન શોધ · THE BEGINNING"></div>';
+  var head='<div class="pjh"></div>';
   if(st==='lobby'){var u='';try{u=qrDataUrl(playerLink())}catch(e){}
    return head+'<div class="pjrow"><div>'+(u?'<img class="pjqr" src="'+u+'">':'')+'</div><div><div class="pjs">Room Code</div><div class="pjbig">'+esc2(r.code)+'</div><div class="pjs">📲 QR Scan કરો અને Join થાઓ</div><div class="pjn">👥 '+Object.keys(r.players||{}).length+'</div></div></div>'}
   if(st==='question'||st==='locked'){var q=(r.questions&&r.questions[r.curIdx])||{},rem=r.paused?Math.ceil((r.pausedMs||0)/1000):Math.max(0,Math.ceil(((r.timerEnd||0)-Date.now())/1000));
@@ -2493,7 +2495,7 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
   g.strokeStyle=A;g.lineWidth=12;g.strokeRect(28,28,W-56,H-56);g.lineWidth=3;g.strokeRect(54,54,W-108,H-108);
   g.fillStyle=A;[[28,28],[W-28,28],[28,H-28],[W-28,H-28]].forEach(function(p){g.save();g.translate(p[0],p[1]);g.rotate(Math.PI/4);g.fillStyle=A;g.fillRect(-16,-16,32,32);g.fillStyle='#fffaf0';g.fillRect(-7,-7,14,14);g.restore()});
   g.textAlign='center';
-  if(img&&img.width){var k=Math.min(420/img.width,130/img.height,2),iw=img.width*k,ih=img.height*k;g.drawImage(img,W/2-iw/2,75+(130-ih)/2,iw,ih)}else{g.font='90px '+CSANS;g.fillStyle='#000';g.fillText('🏆',W/2,175)}
+  if(img&&img.width){var k=Math.min(420/img.width,166/img.height,2),iw=img.width*k,ih=img.height*k;g.save();g.shadowColor='rgba(0,0,0,.25)';g.shadowBlur=14;g.drawImage(img,W/2-iw/2,64+(166-ih)/2,iw,ih);g.restore()}else{g.font='90px '+CSANS;g.fillStyle='#000';g.fillText('🏆',W/2,175)}
   g.fillStyle=A;g.font='700 34px '+CDISP;g.fillText((C.sub||'CERTIFICATE OF ACHIEVEMENT').toUpperCase(),W/2,265);
   g.fillStyle='#3b2a00';var ts=cfit(g,C.title||'પ્રમાણપત્ર',W-400,78,900,CSERIF,40);g.font='900 '+ts+'px '+CSERIF;g.fillText(C.title||'પ્રમાણપત્ર',W/2,355);
   g.fillStyle='#6b5a2e';var ms=cfit(g,C.msg||'આ પ્રમાણપત્ર અભિનંદન સાથે આપવામાં આવે છે',W-300,34,600,CSANS,20);g.font='600 '+ms+'px '+CSANS;g.fillText(C.msg||'આ પ્રમાણપત્ર અભિનંદન સાથે આપવામાં આવે છે',W/2,445);
@@ -2509,7 +2511,7 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
   g.textAlign='center';if(C.signer){g.fillStyle='#1f1400';var ss=cfit(g,C.signer,420,40,700,CSERIF,22);g.font='italic 700 '+ss+'px '+CSERIF;g.fillText(C.signer,W/2,1100)}
   g.fillStyle=A;g.fillRect(W/2-190,1112,380,2);g.fillStyle='#6b5a2e';g.font='600 26px '+CSANS;g.fillText(C.org||'Host / Organizer',W/2,1150);
   return c}
- function certLoad(url){return new Promise(function(res){if(!url)return res(null);var i=new Image();i.onload=function(){res(i)};i.onerror=function(){res(null)};i.src=url})}
+ function certLoad(url){return new Promise(function(res){if(!url)url='logo.png';var i=new Image();i.onload=function(){res(i)};i.onerror=function(){res(null)};i.src=url})}
  var LOGO=null;
  function cfgNow(){try{return JSON.parse(localStorage.getItem('certCfg')||'{}')}catch(e){return {}}}
  function certCanvas(d){return certDraw(d,cfgNow(),LOGO)}
@@ -2846,14 +2848,24 @@ function readCfgFields(){ if(!document.getElementById('rn0')) return {}; var rn=
 
  function pc(v){ v=String(v||'').trim(); var m=v.match(/^#?([0-9a-f]{6})$/i); if(m) return '#'+m[1].toLowerCase(); m=v.match(/^#?([0-9a-f])([0-9a-f])([0-9a-f])$/i); if(m) return ('#'+m[1]+m[1]+m[2]+m[2]+m[3]+m[3]).toLowerCase(); m=v.match(/(\d{1,3})\D+(\d{1,3})\D+(\d{1,3})/); if(m&&+m[1]<256&&+m[2]<256&&+m[3]<256){ return '#'+[m[1],m[2],m[3]].map(function(x){x=(+x).toString(16);return x.length<2?'0'+x:x}).join(''); } return null; }
  function rd(d,k){ var c=pc(d.querySelector('#'+k+'c').value); return c||d.querySelector('#'+k).value; }
+
+ function pjld(){try{var j=JSON.parse(localStorage.getItem('bgPj')||'null');return j&&j.b?j:null}catch(e){return null}}
+ function pjApply(j){ var st=document.documentElement.style; if(!j||!j.b){ ['--pjb','--pjg','--pjd'].forEach(function(k){st.removeProperty(k)}); return; } st.setProperty('--pjb',j.b); st.setProperty('--pjg',j.g||BGTheme.mix(j.b,'#ffffff',.35)); st.setProperty('--pjd',BGTheme.mix(j.b,'#000000',.82)); }
+ pjApply(pjld());
+ function pjf(n,id,v){ return '<label style="font-weight:700">'+n+' <input type="color" id="'+id+'" value="'+v+'" style="vertical-align:middle;width:46px;height:34px;padding:0;border:0;background:none"> <input type="text" id="'+id+'c" value="'+v+'" placeholder="#RRGGBB અથવા R,G,B" style="width:130px;margin:0;vertical-align:middle"></label>'; }
+ function pjUI(){ var j=pjld(),t=BGTheme.derive(BGTheme.get()||BGTheme.PRESETS.fun); window.__pjcur={b:(j&&j.b)||t.pd,g:(j&&j.g)||t.s}; var pj=window.__pjcur; return ''+'<div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)"><b>📺 Projector Screen નો Colour</b><div class="muted">Big Screen નો Background અલગથી બદલી શકાય — RGB code પણ લખી શકાય.</div><div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:6px">'+pjf('Background','pjb',pj.b)+pjf('Glow','pjg',pj.g)+'<button type="button" class="btn" id="pjgo" style="margin:0">✔ Projector Apply</button><button type="button" class="btn ghost" id="pjrs" style="margin:0">↺ Theme jevo</button></div></div>'; }
  function card(){
   var cur=(BGTheme.get()||BGTheme.PRESETS.fun), P=BGTheme.PRESETS, h='';
   Object.keys(P).forEach(function(k){var t=P[k],D=BGTheme.derive(t);
    h+='<button type="button" class="thp" data-k="'+k+'" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;border:2px solid '+(cur.p===t.p&&cur.s===t.s&&cur.bg===t.bg?'var(--tp)':'transparent')+';background:#fff;cursor:pointer;font:inherit;font-weight:700;text-align:left"><span style="display:flex;border-radius:8px;overflow:hidden;flex:none"><i style="width:18px;height:28px;background:'+t.p+'"></i><i style="width:18px;height:28px;background:'+t.s+'"></i><i style="width:18px;height:28px;background:'+t.bg+';border:1px solid #ddd"></i></span><span>'+t.n+'</span></button>'});
   var d=document.createElement('details'); d.id='thcard'; d.className='card';
-  d.innerHTML='<summary style="cursor:pointer;font-weight:800;font-size:1.05rem">🎨 Game ના Colours બદલો</summary><div class="muted" style="margin:6px 0">એક Theme પસંદ કરો અથવા પોતાના colours બનાવો. Wheel, Mystery Box, Round Intro, Card — બધું બદલાઈ જશે અને Players ને પણ તરત દેખાશે. તમારી છેલ્લી પસંદગી આવતી Game માં પણ યાદ રહેશે.</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px">'+h+'</div><div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:10px"><label style="font-weight:700">Main <input type="color" id="thp" value="'+cur.p+'" style="vertical-align:middle;width:46px;height:34px;padding:0;border:0;background:none"> <input type="text" id="thpc" value="'+cur.p+'" placeholder="#RRGGBB  અથવા  R,G,B" style="width:130px;margin:0;vertical-align:middle"></label><label style="font-weight:700">Accent <input type="color" id="ths" value="'+cur.s+'" style="vertical-align:middle;width:46px;height:34px;padding:0;border:0;background:none"> <input type="text" id="thsc" value="'+cur.s+'" placeholder="#RRGGBB  અથવા  R,G,B" style="width:130px;margin:0;vertical-align:middle"></label><label style="font-weight:700">Background <input type="color" id="thb" value="'+cur.bg+'" style="vertical-align:middle;width:46px;height:34px;padding:0;border:0;background:none"> <input type="text" id="thbc" value="'+cur.bg+'" placeholder="#RRGGBB  અથવા  R,G,B" style="width:130px;margin:0;vertical-align:middle"></label><button type="button" class="btn" id="thgo" style="margin:0">✔ Apply</button></div><div class="muted" id="thmsg" style="margin-top:6px"></div>';
+  d.innerHTML='<summary style="cursor:pointer;font-weight:800;font-size:1.05rem">🎨 Game ના Colours બદલો</summary><div class="muted" style="margin:6px 0">એક Theme પસંદ કરો અથવા પોતાના colours બનાવો. Wheel, Mystery Box, Round Intro, Card — બધું બદલાઈ જશે અને Players ને પણ તરત દેખાશે. તમારી છેલ્લી પસંદગી આવતી Game માં પણ યાદ રહેશે.</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px">'+h+'</div><div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:10px"><label style="font-weight:700">Main <input type="color" id="thp" value="'+cur.p+'" style="vertical-align:middle;width:46px;height:34px;padding:0;border:0;background:none"> <input type="text" id="thpc" value="'+cur.p+'" placeholder="#RRGGBB  અથવા  R,G,B" style="width:130px;margin:0;vertical-align:middle"></label><label style="font-weight:700">Accent <input type="color" id="ths" value="'+cur.s+'" style="vertical-align:middle;width:46px;height:34px;padding:0;border:0;background:none"> <input type="text" id="thsc" value="'+cur.s+'" placeholder="#RRGGBB  અથવા  R,G,B" style="width:130px;margin:0;vertical-align:middle"></label><label style="font-weight:700">Background <input type="color" id="thb" value="'+cur.bg+'" style="vertical-align:middle;width:46px;height:34px;padding:0;border:0;background:none"> <input type="text" id="thbc" value="'+cur.bg+'" placeholder="#RRGGBB  અથવા  R,G,B" style="width:130px;margin:0;vertical-align:middle"></label><button type="button" class="btn" id="thgo" style="margin:0">✔ Apply</button></div>'+pjUI()+'<div class="muted" id="thmsg" style="margin-top:6px"></div>';
   d.querySelectorAll('.thp').forEach(function(b){b.onclick=function(){var t=Object.assign({id:b.getAttribute('data-k')},P[b.getAttribute('data-k')]); push(t); d.querySelector('#thp').value=d.querySelector('#thpc').value=t.p;d.querySelector('#ths').value=d.querySelector('#thsc').value=t.s;d.querySelector('#thb').value=d.querySelector('#thbc').value=t.bg; d.querySelectorAll('.thp').forEach(function(x){x.style.borderColor=x===b?'var(--tp)':'transparent'})}});
   ['thp','ths','thb'].forEach(function(k){ var pk=d.querySelector('#'+k),tx=d.querySelector('#'+k+'c'); pk.oninput=function(){tx.value=pk.value}; tx.oninput=function(){var c=pc(tx.value); if(c) pk.value=c}; });
+
+  ['pjb','pjg'].forEach(function(k){ var pk=d.querySelector('#'+k),tx=d.querySelector('#'+k+'c'); pk.oninput=function(){tx.value=pk.value}; tx.oninput=function(){var c=pc(tx.value); if(c) pk.value=c}; });
+  d.querySelector('#pjgo').onclick=function(){ var b=pc(d.querySelector('#pjbc').value),g=pc(d.querySelector('#pjgc').value); if(!b||!g){ d.querySelector('#thmsg').textContent='⚠️ Colour code barabar nathi. Example: #1F3A7A athva 31,58,122'; return; } var j={b:b,g:g}; try{localStorage.setItem('bgPj',JSON.stringify(j))}catch(e){} pjApply(j); d.querySelector('#thmsg').textContent='✅ Projector no colour badlayo'; };
+  d.querySelector('#pjrs').onclick=function(){ try{localStorage.removeItem('bgPj')}catch(e){} pjApply(null); d.querySelector('#thmsg').textContent='✅ Projector Theme jevo thayo'; };
   d.querySelector('#thgo').onclick=function(){ var bad=['thp','ths','thb'].filter(function(k){return !pc(d.querySelector('#'+k+'c').value)}); if(bad.length){ d.querySelector('#thmsg').textContent='⚠️ Colour code barabar nathi. Example: #1F3A7A athva 31,58,122'; return; } push({id:'custom',n:'Custom',p:rd(d,'thp'),s:rd(d,'ths'),bg:rd(d,'thb')}); };
   return d; }
  var _r=render;
@@ -2879,7 +2891,7 @@ function readCfgFields(){ if(!document.getElementById('rn0')) return {}; var rn=
 #pj:has(.pjw) .pjw{display:flex;flex-direction:column;align-items:center;gap:.5vh}
 #pj:has(.pjw) .pjc{font-size:clamp(1.6rem,6vh,4rem)!important;line-height:1}
 #pj:has(.pjw) .pjl{font-size:clamp(1.3rem,5.5vh,3.6rem)!important;line-height:1.15!important}
-#pj:has(.pjw) .pjav{font-size:clamp(3rem,15vh,9rem)!important;line-height:1.05}
+#pj:has(.pjw) .pjav{font-size:clamp(3rem,15vh,9rem)!important;line-height:1.2;margin-top:1.2vh}
 #pj:has(.pjw) .pjname{font-size:clamp(2.2rem,11vh,7rem)!important;line-height:1.2!important;max-width:94vw}
 #pj:has(.pjw) .pjzn{font-size:clamp(1rem,3.6vh,2.2rem)!important;margin-top:0!important;padding:.4vh 22px}
 #pj:has(.pjw) .pjsc{font-size:clamp(1.2rem,5.2vh,3.2rem)!important;line-height:1.2!important}
@@ -2887,5 +2899,6 @@ function readCfgFields(){ if(!document.getElementById('rn0')) return {}; var rn=
 #pj:has(.pjw) .pjclaim small{font-size:.55em}
 #pj:has(.pjw) .pjfw{font-size:clamp(1.2rem,4.5vh,3rem)!important;line-height:1.1}
 </style>
+<style id="up-pjc">#pj{background:radial-gradient(1200px 700px at 50% -10%,var(--pjg,var(--pl)),var(--pjb,var(--pd)) 60%,var(--pjd,#0d0a1c))!important}.pjh:empty{display:none}</style>
 </body>
 </html>

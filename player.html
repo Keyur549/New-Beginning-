@@ -966,7 +966,7 @@ if('serviceWorker' in navigator){ navigator.serviceWorker.getRegistrations().the
   g.strokeStyle=A;g.lineWidth=12;g.strokeRect(28,28,W-56,H-56);g.lineWidth=3;g.strokeRect(54,54,W-108,H-108);
   g.fillStyle=A;[[28,28],[W-28,28],[28,H-28],[W-28,H-28]].forEach(function(p){g.save();g.translate(p[0],p[1]);g.rotate(Math.PI/4);g.fillStyle=A;g.fillRect(-16,-16,32,32);g.fillStyle='#fffaf0';g.fillRect(-7,-7,14,14);g.restore()});
   g.textAlign='center';
-  if(img&&img.width){var k=Math.min(420/img.width,130/img.height,2),iw=img.width*k,ih=img.height*k;g.drawImage(img,W/2-iw/2,75+(130-ih)/2,iw,ih)}else{g.font='90px '+CSANS;g.fillStyle='#000';g.fillText('🏆',W/2,175)}
+  if(img&&img.width){var k=Math.min(420/img.width,166/img.height,2),iw=img.width*k,ih=img.height*k;g.save();g.shadowColor='rgba(0,0,0,.25)';g.shadowBlur=14;g.drawImage(img,W/2-iw/2,64+(166-ih)/2,iw,ih);g.restore()}else{g.font='90px '+CSANS;g.fillStyle='#000';g.fillText('🏆',W/2,175)}
   g.fillStyle=A;g.font='700 34px '+CDISP;g.fillText((C.sub||'CERTIFICATE OF ACHIEVEMENT').toUpperCase(),W/2,265);
   g.fillStyle='#3b2a00';var ts=cfit(g,C.title||'પ્રમાણપત્ર',W-400,78,900,CSERIF,40);g.font='900 '+ts+'px '+CSERIF;g.fillText(C.title||'પ્રમાણપત્ર',W/2,355);
   g.fillStyle='#6b5a2e';var ms=cfit(g,C.msg||'આ પ્રમાણપત્ર અભિનંદન સાથે આપવામાં આવે છે',W-300,34,600,CSANS,20);g.font='600 '+ms+'px '+CSANS;g.fillText(C.msg||'આ પ્રમાણપત્ર અભિનંદન સાથે આપવામાં આવે છે',W/2,445);
@@ -982,7 +982,7 @@ if('serviceWorker' in navigator){ navigator.serviceWorker.getRegistrations().the
   g.textAlign='center';if(C.signer){g.fillStyle='#1f1400';var ss=cfit(g,C.signer,420,40,700,CSERIF,22);g.font='italic 700 '+ss+'px '+CSERIF;g.fillText(C.signer,W/2,1100)}
   g.fillStyle=A;g.fillRect(W/2-190,1112,380,2);g.fillStyle='#6b5a2e';g.font='600 26px '+CSANS;g.fillText(C.org||'Host / Organizer',W/2,1150);
   return c}
- function certLoad(url){return new Promise(function(res){if(!url)return res(null);var i=new Image();i.onload=function(){res(i)};i.onerror=function(){res(null)};i.src=url})}
+ function certLoad(url){return new Promise(function(res){if(!url)url='logo.png';var i=new Image();i.onload=function(){res(i)};i.onerror=function(){res(null)};i.src=url})}
 
  function nz(x){return String(x||'').trim().toLowerCase()}
  function myWins(r){var p=r.players&&r.players[state.name];if(!p)return [];var w=r.winners||{},st=r.revealStep||0,out=[];
