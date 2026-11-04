@@ -386,6 +386,7 @@ io.on('connection', (socket) => {
     const t=(x,n)=>String(x==null?'':x).slice(0,n);
     const c={title:t(cert.title,60),sub:t(cert.sub,60),msg:t(cert.msg,120),event:t(cert.event,100),org:t(cert.org,60),signer:t(cert.signer,60),color:/^#[0-9a-f]{6}$/i.test(cert.color||'')?cert.color:''};
     if(typeof cert.logo==='string' && /^data:image\/(png|jpeg|webp);base64,/.test(cert.logo) && cert.logo.length<=450000) c.logo=cert.logo;
+    if(typeof cert.signImg==='string' && /^data:image\/(png|jpeg|webp);base64,/.test(cert.signImg) && cert.signImg.length<=250000) c.signImg=cert.signImg;
     r.cert=c; scheduleBackup(code); cb&&cb({ok:true});
   });
   socket.on('cert:get', ({code}, cb) => { const r=rooms[code]; cb&&cb({ok:!!r, cert:(r&&r.cert)||null, revealed:!!r&&r.status==='revealed'}); });
@@ -492,7 +493,7 @@ io.on('connection', (socket) => {
     broadcast(code); cb&&cb({ok:true});
   });
   const REVEAL_MS=1600;       // how long the big number popup stays up before the question appears
-  const SPIN_SAFETY_MS=6000;  // safety net only — if host's browser never confirms, auto-advance so the game can't get stuck
+  const SPIN_SAFETY_MS=7500;  // safety net only — if host's browser never confirms, auto-advance so the game can't get stuck
   socket.on('host:spin', ({code}) => {
     const r = rooms[code]; if(!r) return;
     if(r.status!=='active' && r.status!=='locked') return; // ignore duplicate/racing spin clicks — fixes skipped questions

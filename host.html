@@ -1568,10 +1568,10 @@ function wheelSVG(numbers, rotation, highlightNumber){
     const x2=C+R*Math.cos(a1*Math.PI/180), y2=C+R*Math.sin(a1*Math.PI/180);
     const large=seg>180?1:0, gi=(num-1)%pal.length;
     const ring=num===highlightNumber?'stroke="#fff" stroke-width="3.5"':'stroke="#fff" stroke-opacity=".85" stroke-width="1.6"';
-    if(total===1) paths+=`<circle cx="${C}" cy="${C}" r="${R}" fill="url(#whg${gi})" ${ring}/>`;
-    else paths+=`<path d="M${C},${C} L${x1.toFixed(1)},${y1.toFixed(1)} A${R},${R} 0 ${large} 1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="url(#whg${gi})" ${ring}/>`;
+    if(total===1) paths+=`<circle data-n="${num}" cx="${C}" cy="${C}" r="${R}" fill="url(#whg${gi})" ${ring}/>`;
+    else paths+=`<path data-n="${num}" d="M${C},${C} L${x1.toFixed(1)},${y1.toFixed(1)} A${R},${R} 0 ${large} 1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="url(#whg${gi})" ${ring}/>`;
     const mid=(a0+a1)/2, lx=C+(R*0.66)*Math.cos(mid*Math.PI/180), ly=C+(R*0.66)*Math.sin(mid*Math.PI/180);
-    paths+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="#fff" stroke="rgba(23,11,59,.75)" stroke-width="2.6" paint-order="stroke" font-family="'Baloo Bhai 2','Hind Vadodara',sans-serif" font-size="${total>12?16:total>6?24:34}" font-weight="800" text-anchor="middle" dominant-baseline="central">${num}</text>`;
+    paths+=`<text data-n="${num}" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="#fff" stroke="rgba(23,11,59,.75)" stroke-width="2.6" paint-order="stroke" font-family="'Baloo Bhai 2','Hind Vadodara',sans-serif" font-size="${total>12?16:total>6?24:34}" font-weight="800" text-anchor="middle" dominant-baseline="central">${num}</text>`;
   });
   let studs=''; for(let i=0;i<24;i++){ const a=i*15*Math.PI/180, sx=C+(R+6.5)*Math.cos(a), sy=C+(R+6.5)*Math.sin(a); studs+=`<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="2.6" fill="${i%2?'#fff':'#E53935'}" stroke="#7C2D12" stroke-width=".5"/>`; }
   return `<div style="position:relative;width:284px;margin:10px auto 6px;">
@@ -1653,10 +1653,22 @@ function maybeAnimate(r){
   if(r.status==='active'){ lastWheelIdx=null; lastRevealIdx=null; lastQuestionIdx=null; lastSpokenIdx=null; pendingReveal=null; numberPopup=null; }
   if(r.status==='spinning' && r.curIdx!=null && r.curIdx!==lastWheelIdx){
     lastWheelIdx=r.curIdx;
-    pendingReveal=null; // previous round's number disappears exactly now
-    wheelLayout=computeLayout(r);
-    const num=r.curIdx+1, pos=wheelLayout.indexOf(num);
-    animateSpinTo(pos<0?0:pos, wheelLayout.length, r.curIdx);
+    const _old=pendingReveal, _go=()=>{
+      pendingReveal=null; wheelRotation=0; // previous number is gone, wheel sits upright in the middle
+      wheelLayout=computeLayout(r);
+      const num=r.curIdx+1, pos=wheelLayout.indexOf(num);
+      animateSpinTo(pos<0?0:pos, wheelLayout.length, r.curIdx);
+      try{ window.__pjForce&&__pjForce(); }catch(e){}
+    };
+    if(_old!=null && wheelLayout && wheelLayout.indexOf(_old)>=0){
+      // 1) the previous question's number fades out of the wheel while the wheel glides back to centre, 2) then the spin starts
+      const R0=wheelRotation, R1=Math.ceil(R0/360)*360, T0=performance.now(), D0=650;
+      const fr=(now)=>{ const u=Math.min(1,(now-T0)/D0), e=u*u*(3-2*u);
+        document.querySelectorAll('svg#wheelSvg').forEach(el=>{ el.style.transition='none'; el.style.transform='rotate('+(R0+(R1-R0)*e).toFixed(2)+'deg)';
+          el.querySelectorAll('[data-n="'+_old+'"]').forEach(n=>{ n.style.opacity=String(1-e); n.style.transformBox='fill-box'; n.style.transformOrigin='50% 50%'; n.style.transform='scale('+(1-.25*e).toFixed(3)+')'; }); });
+        if(u<1) requestAnimationFrame(fr); else { wheelRotation=R1; _go(); } };
+      spinning=true; requestAnimationFrame(fr);
+    } else _go();
   }
   if(r.status==='revealing' && r.curIdx!=null && r.curIdx!==lastRevealIdx){
     lastRevealIdx=r.curIdx;
@@ -2359,7 +2371,7 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
  function btn(a,t,c){return '<button data-act="'+a+'"'+(c?' class="'+c+'"':'')+'>'+t+'</button>'}
  function ctl(r){var st=r.status,b='';if(st==='spinning'||st==='revealing'||st==='question')return '';
   if(st==='lobby')b=(r.joinEnd?btn('jtp','＋1 મિનિટ')+btn('jtx','⏹ Timer બંધ','sk'):btn('jt5','⏱ 5:00 Join Timer શરૂ'))+btn('start','▶ Game શરૂ કરો','go');
-  else if(st==='active'||st==='locked'){var per_=(r.cfg&&r.cfg.perRound)||5,rdU=(r.usedIdx||[]).filter(function(i){return Math.floor(i/per_)===(r.round||0)}).length;b=(st==='locked'&&rdU>=per_)?btn('startbox','🎁 Round '+((r.round||0)+1)+' પૂરો – Mystery Box શરૂ કરો','go'):btn('spin','🎡 SPIN','go');b+=btn('end','🏁 Game પૂરી','sk')+'<div class="pjtm"><span class="lbl">⏱ દરેક પ્રશ્નનો સમય:</span>'+[10,15,20,30,45,60].map(function(t){return btn('t_'+t,t+'s',((r.qSec||30)===t)?'tm cur':'tm')}).join('')+'</div>'}
+  else if(st==='active'||st==='locked'){var per_=(r.cfg&&r.cfg.perRound)||5,rdU=(r.usedIdx||[]).filter(function(i){return Math.floor(i/per_)===(r.round||0)}).length;b=(st==='locked'&&rdU>=per_)?btn('startbox','🎁 Round '+((r.round||0)+1)+' પૂરો – Mystery Box શરૂ કરો','go'):btn('spin','🎡 SPIN','go');b+=btn('end','🏁 Game પૂરી','sk')+'<div class="pjtm"><span class="lbl">⏱ દરેક પ્રશ્નનો સમય: <b class="tmv">'+(r.qSec||30)+' sec</b></span>'+[10,15,20,30,45,60].map(function(t){return btn('t_'+t,t+'s',((r.qSec||30)===t)?'tm cur':'tm')}).join('')+'</div>'}
   else if(st==='question')b=(r.paused?btn('resume','▶ Resume','go'):btn('pause','⏸ Pause'))+btn('skip','⏭ Time Skip','sk');
   else if(st==='ended')b=btn('reveal','🏆 Result Reveal કરો','go')+btn('dash','📊 Dashboard','sk');
   else if(st==='box'){var lastR=(r.round||0)>=(((r.cfg&&r.cfg.rounds)||7)-1);b=btn('nextround',lastR?'🏁 છેલ્લો Round પૂરો':'➡️ Next Round (નવું Wheel)','go')+btn('end','🏁 Game પૂરી','sk')}
@@ -2379,7 +2391,7 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
   return (o||tie)?'<div class="pjclaim">'+o+(tie?'<small>⚖️ Tie-break: '+esc2(tie===true?'સૌથી પહેલા Claim':tie)+'</small>':'')+'</div>':''}
  function html(r){var st=r.status;
   if(st==='active'||st==='spinning'||st==='revealing'||st==='locked'){
-   return '<div class="pjh"></div>'+(r.round!=null?'<div class="pjs">ROUND '+((r.round||0)+1)+'</div>'+RNM(r):'')+(st==='locked'?'<div class="pjfire" style="background:linear-gradient(90deg,#475569,#1e293b);box-shadow:none;animation:none">⏱ સમય પૂરો — '+(((r.usedIdx||[]).filter(function(i){var p_=(r.cfg&&r.cfg.perRound)||5;return Math.floor(i/p_)===(r.round||0)}).length>=((r.cfg&&r.cfg.perRound)||5))?'Round પૂરો, Mystery Box શરૂ કરો':'હવે Spin દબાવો')+'</div>':'')+stage(r)+(st==='active'&&!(r.usedIdx||[]).length?'<div class="pjs">Game શરૂ થાય છે…</div>':'')+(st==='revealing'?'<div class="pjs">હવે પ્રશ્ન આવે છે…</div>':'')+bars(r)+ctl(r)}
+   return '<div class="pjh"></div>'+'<div class="pjqs">⏱ સમય <b>'+(r.qSec||30)+'</b> sec</div>'+(r.round!=null?'<div class="pjs">ROUND '+((r.round||0)+1)+'</div>'+RNM(r):'')+(st==='locked'?'<div class="pjfire" style="background:linear-gradient(90deg,#475569,#1e293b);box-shadow:none;animation:none">⏱ સમય પૂરો — '+(((r.usedIdx||[]).filter(function(i){var p_=(r.cfg&&r.cfg.perRound)||5;return Math.floor(i/p_)===(r.round||0)}).length>=((r.cfg&&r.cfg.perRound)||5))?'Round પૂરો, Mystery Box શરૂ કરો':'હવે Spin દબાવો')+'</div>':'')+stage(r)+(st==='active'&&!(r.usedIdx||[]).length?'<div class="pjs">Game શરૂ થાય છે…</div>':'')+(st==='revealing'?'<div class="pjs">હવે પ્રશ્ન આવે છે…</div>':'')+bars(r)+ctl(r)}
   if(st==='box'){var pk=0,tp=Object.keys(r.players||{}),rm=Math.max(0,Math.ceil(((r.boxEnd||0)-Date.now())/1000));tp.forEach(function(n){if(((r.players[n].boxPick||[])[r.round])!=null)pk++});
    return '<div class="pjh"></div><div class="pjs">ROUND '+((r.round||0)+1)+' પૂરો</div>'+RNM(r)+'<div class="pjboxes">'+[1,2,3,4,5,6,7].map(function(i){return '<div class="mbox">🎁<small>'+i+'</small></div>'}).join('')+'</div><div class="pjs">Mystery Box</div><div class="pjt'+(rm<=10&&!r.boxAuto?' lo':'')+'">'+(r.boxAuto?'⏱':rm+'s')+'</div><div class="pjs">✅ '+pk+' / '+tp.length+' Players એ Box પસંદ કર્યું</div>'+ctl(r)}
   if(st==='opening')return '<div class="pjh"></div><div class="pjbig">🏁</div><div class="pjs">બધા Round પૂરા</div><div class="pjs">Mystery Box ના Result Players ને દેખાય છે</div>'+ctl(r)
@@ -2424,7 +2436,8 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
  function onPoll(){try{if(!open||typeof state==='undefined'||!state.code)return;socket.emit('host:online',{code:state.code},function(d){if(d&&d.ok){ON={on:d.online,tot:d.total,off:d.off||[]}}})}catch(e){}}
  function onBadge(){if(ON.on==null)return '';var w=ON.tot>0&&ON.on<ON.tot;return '<div class="pjon'+(w?' w':'')+'">🟢 '+ON.on+' / '+ON.tot+' Online'+(w?'<small>📵 '+(ON.tot-ON.on)+' offline'+(ON.off&&ON.off.length?': '+esc2(ON.off.slice(0,3).join(', '))+(ON.off.length>3?'…':''):'')+'</small>':'')+'</div>'}
  function paint(){paint0();var oo=document.getElementById('pj');if(open&&oo){var bd=oo.querySelector('.pjon'),nb=onBadge();if(!nb){if(bd)bd.remove()}else if(bd){if(bd.outerHTML!==nb)bd.outerHTML=nb}else oo.insertAdjacentHTML('afterbegin',nb)}var o=document.getElementById('pj'),r=(typeof state!=='undefined')&&state.room;if(open&&o&&r&&r.status==='lobby'){var w=o.querySelector('#pjjw');if(w)w.innerHTML=jtHTML(r)}}
- var _lps=null;function paint0(){if(!open)return;try{var _r0=state.room;if(typeof spinning!=='undefined'&&spinning&&_r0&&_r0.status===_lps)return;_lps=_r0&&_r0.status}catch(e){}try{var _w=state.room;if(_w&&_w.status==='revealed'){var _O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[],_s=_w.revealStep||0;if(_s!==WV.s){WV.s=_s;clearTimeout(WV.t);if(_s>=1&&_s<=_O.length){document.body.classList.add('wvhide');WV.t=setTimeout(function(){document.body.classList.remove('wvhide')},10000)}else document.body.classList.remove('wvhide')}}else if(WV.s!==null){WV.s=null;clearTimeout(WV.t);document.body.classList.remove('wvhide')}}catch(e){}try{var _q=state.room;if(_q&&_q.status==='question'&&_q.curIdx!==TW.idx){TW.idx=_q.curIdx;TW.t0=Date.now()}else if(_q&&_q.status!=='question')TW.idx=null}catch(e){}if(typeof spinning!=="undefined"&&spinning)return;var r=(typeof state!=='undefined')&&state.room;var o=document.getElementById('pj');if(!o||!r)return;pvAnnounce(r);sfxTick(r);var h=html(r);var jw=o.querySelector('#pjjw');if(h!==last){last=h;o.querySelector('.pjin').innerHTML=h}}
+ var _lps=null;function paint0(){if(!open)return;try{var _r0=state.room;if(typeof spinning!=='undefined'&&spinning&&_r0&&_r0.status===_lps)return;_lps=_r0&&_r0.status}catch(e){}try{var _w=state.room;if(_w&&_w.status==='revealed'){var _O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[],_s=_w.revealStep||0;if(_s!==WV.s){WV.s=_s;clearTimeout(WV.t);if(_s>=1&&_s<=_O.length){document.body.classList.add('wvhide');WV.t=setTimeout(function(){document.body.classList.remove('wvhide')},10000)}else document.body.classList.remove('wvhide')}}else if(WV.s!==null){WV.s=null;clearTimeout(WV.t);document.body.classList.remove('wvhide')}}catch(e){}try{var _q=state.room;if(_q&&_q.status==='question'&&_q.curIdx!==TW.idx){TW.idx=_q.curIdx;TW.t0=Date.now()}else if(_q&&_q.status!=='question')TW.idx=null}catch(e){}if(typeof spinning!=="undefined"&&spinning&&!window.__pjB)return;var r=(typeof state!=='undefined')&&state.room;var o=document.getElementById('pj');if(!o||!r)return;pvAnnounce(r);sfxTick(r);var h=html(r);var jw=o.querySelector('#pjjw');if(h!==last){last=h;o.querySelector('.pjin').innerHTML=h}}
+ window.__pjForce=function(){_lps=null;last='';window.__pjB=true;try{paint()}catch(e){}window.__pjB=false};
  function toggle(on){open=(on===undefined)?!open:on;var o=document.getElementById('pj');o.style.display=open?'flex':'none';if(open){last='';paint();try{var de=document.documentElement;if(de.requestFullscreen)de.requestFullscreen()}catch(e){}iv=setInterval(paint,500);tw=setInterval(twTick,60);onPoll();onT=setInterval(onPoll,3000)}else{clearInterval(iv);clearInterval(tw);clearInterval(onT);try{o.querySelector('.pjin').innerHTML='';last=''}catch(e){}try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}}}
  function init(){var o=document.createElement('div');o.id='pj';o.style.display='none';o.innerHTML='<button class="pjx" aria-label="Close">✕</button><button class="pjv" aria-label="Voice">🔊</button><div class="pjin"></div>';o.querySelector('.pjv').onclick=function(){PV.on=!PV.on;this.textContent=PV.on?'🔊':'🔇';try{speechSynthesis.cancel()}catch(e){}};document.body.insertBefore(o,document.body.firstChild);o.querySelector('.pjin').onclick=function(e){var t=e.target.closest&&e.target.closest('[data-act]');if(!t)return;var a=t.getAttribute('data-act');if(a&&a.indexOf('t_')===0){hostSetTimer(+a.slice(2));return}var f={start:'hostStart',spin:'hostSpin',pause:'hostPause',resume:'hostResume',skip:'hostSkipTimer',reveal:'hostReveal',next:'hostNextWinner',end:'hostEnd',startbox:'hostStartBox',nextround:'hostNextRound',dash:'openDashboard',xls:'downloadExcel'}[a];if(a==='sc'){var r3=state.room;hostScReveal(!(r3&&r3.scReveal));return}if(a&&a.indexOf('draw_')===0){hostSetDraw(a.slice(5));return}if(a==='jt5'){socket.emit('host:joinTimer',{code:state.code,sec:300});return}if(a==='jtp'){var rr=state.room,rm=Math.max(0,Math.ceil(((rr&&rr.joinEnd||0)-Date.now())/1000));socket.emit('host:joinTimer',{code:state.code,sec:rm+60});return}if(a==='jtx'){socket.emit('host:joinTimer',{code:state.code,sec:0});return}try{if(f&&typeof window[f]==='function')window[f]();else if(f)eval(f+'()')}catch(x){}};o.querySelector('.pjx').onclick=function(){toggle(false)};
   var b=document.createElement('button');b.id='hproj';b.type='button';b.setAttribute('aria-label','Projector');b.textContent='📺';b.onclick=function(){toggle(true)};document.body.appendChild(b);
@@ -2444,7 +2457,7 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
  function build(){o.innerHTML='<div class="hin"><div class="hcard"><div class="hhd"><b>🛠 Host Tools</b><button class="hx" id="tx">✕</button></div>'+
   '<div class="tsec"><h3>👥 Players (<span id="tc">0</span>) — Rename / Kick</h3><input type="search" id="tq" placeholder="નામ / Zone શોધો…"><div id="tl"></div></div>'+
   '<div class="tsec"><h3>🤖 Pre-test (Test Players)</h3><div class="muted" style="font-size:.8rem">Lobby માં નકલી Players ઉમેરી જુઓ કે Server/Host કેટલું ભારે થાય છે. Game શરૂ કરતાં જ બધા Test Players આપોઆપ નીકળી જાય છે.</div><input type="number" id="tn" min="1" max="1000" value="50"><label style="display:block;margin:6px 0;font-size:.85rem"><input type="checkbox" id="tplay"> 🎮 Test Players Game ma pan rahe ane jawab aape <b>(fakt Test game — real game ma ON na karvu)</b></label><div class="tbt"><button id="tadd">➕ Test Players ઉમેરો</button><button class="r" id="tclr">🧹 Test Players કાઢો</button></div><div class="tmsg" id="tmsg"></div></div>'+
-  '<div class="tsec"><h3>🏅 Certificates & Report</h3><div class="muted" style="font-size:.8rem">Result Reveal પછી: દરેક Winner નું Certificate (PNG) અથવા બધાનું એક PDF, અને Event Report PDF.</div><details style="margin:8px 0"><summary style="cursor:pointer;font-weight:800">✏️ Certificate Edit / મારો Logo</summary><div style="display:grid;gap:6px;margin-top:6px"><input type="text" id="ce_title" placeholder="Title (પ્રમાણપત્ર)"><input type="text" id="ce_sub" placeholder="Sub-title (CERTIFICATE OF ACHIEVEMENT)"><input type="text" id="ce_msg" placeholder="Message line"><input type="text" id="ce_event" placeholder="Event / સંસ્થા નું નામ"><input type="text" id="ce_signer" placeholder="સહી કરનાર નું નામ (વૈકલ્પિક)"><input type="text" id="ce_org" placeholder="સહી નીચે લખાણ (Host / Organizer)"><label style="font-size:.85rem">Colour <input type="color" id="ce_color" value="#b8860b"></label><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><img id="ce_logo" alt="" style="max-height:56px;max-width:140px;display:none;border:1px solid var(--line);border-radius:8px;background:#fff"><button type="button" id="ce_up" style="border:0;border-radius:10px;padding:8px 12px;font:inherit;font-weight:800;cursor:pointer">🖼 Logo Upload</button><button type="button" id="ce_rm" style="border:0;border-radius:10px;padding:8px 12px;font:inherit;cursor:pointer">✖ Logo કાઢો</button></div><input type="file" id="ce_f" accept="image/png,image/jpeg,image/webp" style="display:none"><div class="tbt"><button id="ce_save">💾 Save + Players ને બતાવો</button><button id="ce_pv" class="r" style="background:#475569">👁 Preview</button></div><img id="ce_img" alt="" style="width:100%;border-radius:10px;display:none;border:1px solid var(--line)"></div></details><div id="tcr"></div><div class="tbt"><button id="tcall">📄 બધા Certificates (PDF)</button><button id="trep">📊 Event Report (PDF)</button></div><div class="tmsg" id="tcm"></div></div>'+
+  '<div class="tsec"><h3>🏅 Certificates & Report</h3><div class="muted" style="font-size:.8rem">Result Reveal પછી: દરેક Winner નું Certificate (PNG) અથવા બધાનું એક PDF, અને Event Report PDF.</div><details style="margin:8px 0"><summary style="cursor:pointer;font-weight:800">✏️ Certificate Edit / મારો Logo</summary><div style="display:grid;gap:6px;margin-top:6px"><input type="text" id="ce_title" placeholder="Title (પ્રમાણપત્ર)"><input type="text" id="ce_sub" placeholder="Sub-title (CERTIFICATE OF ACHIEVEMENT)"><input type="text" id="ce_msg" placeholder="Message line"><input type="text" id="ce_event" placeholder="Event / સંસ્થા નું નામ"><input type="text" id="ce_signer" placeholder="સહી કરનાર (Host) નું નામ"><input type="text" id="ce_org" placeholder="સહી નીચે લખાણ (Host / Organizer)"><div style="border:1px dashed var(--line);border-radius:12px;padding:8px"><b>✍ Host Signature</b><div class="muted" style="font-size:.8rem">Signature ની photo Upload કરો અથવા નીચે Mouse/આંગળીથી સહી કરો.</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><img id="ce_sg" alt="" style="max-height:60px;max-width:180px;display:none;border:1px solid var(--line);border-radius:8px;background:#fff"><button type="button" id="ce_sgup" style="border:0;border-radius:10px;padding:8px 12px;font:inherit;font-weight:800;cursor:pointer">📷 Signature Upload</button><button type="button" id="ce_sgrm" style="border:0;border-radius:10px;padding:8px 12px;font:inherit;cursor:pointer">✖ Signature કાઢો</button></div><input type="file" id="ce_sgf" accept="image/png,image/jpeg,image/webp" style="display:none"><canvas id="ce_pad" width="440" height="150" style="width:100%;max-width:440px;height:auto;touch-action:none;background:#fff;border:2px solid var(--line);border-radius:10px;display:block"></canvas><div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><input type="color" id="ce_ink" value="#1a237e" style="width:44px;height:34px;padding:0;border:0;background:none"><button type="button" id="ce_padclr" style="border:0;border-radius:10px;padding:8px 12px;font:inherit;cursor:pointer">🧽 Clear</button><button type="button" id="ce_paduse" style="border:0;border-radius:10px;padding:8px 12px;font:inherit;font-weight:800;cursor:pointer">✔ આ સહી વાપરો</button></div></div><label style="font-size:.85rem">Colour <input type="color" id="ce_color" value="#b8860b"></label><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><img id="ce_logo" alt="" style="max-height:56px;max-width:140px;display:none;border:1px solid var(--line);border-radius:8px;background:#fff"><button type="button" id="ce_up" style="border:0;border-radius:10px;padding:8px 12px;font:inherit;font-weight:800;cursor:pointer">🖼 Logo Upload</button><button type="button" id="ce_rm" style="border:0;border-radius:10px;padding:8px 12px;font:inherit;cursor:pointer">✖ Logo કાઢો</button></div><input type="file" id="ce_f" accept="image/png,image/jpeg,image/webp" style="display:none"><div class="tbt"><button id="ce_save">💾 Save + Players ને બતાવો</button><button id="ce_pv" class="r" style="background:#475569">👁 Preview</button></div><img id="ce_img" alt="" style="width:100%;border-radius:10px;display:none;border:1px solid var(--line)"></div></details><div id="tcr"></div><div class="tbt"><button id="tcall">📄 બધા Certificates (PDF)</button><button id="trep">📊 Event Report (PDF)</button></div><div class="tmsg" id="tcm"></div></div>'+
   '<div class="tsec"><h3>🔊 Sound Pack (Wheel / Timer / Winner)</h3><select id="tsp" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);font:inherit"></select><div class="tbt"><button id="tspt">▶ Test Sound</button></div></div>'+
   '<div class="tsec"><h3>💾 Backup</h3><div class="muted" style="font-size:.8rem">Game નું છેલ્લું Backup (દર થોડી સેકન્ડે આપોઆપ browser માં સચવાય છે) ફાઇલ તરીકે Download કરો. Laptop/Browser બદલવો પડે તો ફાઇલ થી Restore થાય.</div><div class="tbt"><button id="tdl">⬇️ Backup Download</button><button id="tup">📂 File થી Restore</button></div><input type="file" id="tf" accept=".json,application/json" style="display:none"><div class="tmsg" id="tbm"></div></div></div></div>';
   o.querySelector('#tx').onclick=function(){toggle(false)};
@@ -2459,10 +2472,22 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
   (function(){var C={};try{C=JSON.parse(localStorage.getItem('certCfg')||'{}')}catch(x){}
    var F={ce_title:'title',ce_sub:'sub',ce_msg:'msg',ce_event:'event',ce_signer:'signer',ce_org:'org'};Object.keys(F).forEach(function(id){o.querySelector('#'+id).value=C[F[id]]||''});
    if(C.color)o.querySelector('#ce_color').value=C.color;var lg=o.querySelector('#ce_logo');function showLogo(){if(C.logo){lg.src=C.logo;lg.style.display='block'}else lg.style.display='none'}showLogo();
-   function read(){var n={};Object.keys(F).forEach(function(id){n[F[id]]=o.querySelector('#'+id).value.trim()});n.color=o.querySelector('#ce_color').value;if(C.logo)n.logo=C.logo;return n}
+   function read(){var n={};Object.keys(F).forEach(function(id){n[F[id]]=o.querySelector('#'+id).value.trim()});n.color=o.querySelector('#ce_color').value;if(C.logo)n.logo=C.logo;if(C.signImg)n.signImg=C.signImg;return n}
+   var sgi=o.querySelector('#ce_sg');function showSg(){if(C.signImg){sgi.src=C.signImg;sgi.style.display='block'}else sgi.style.display='none'}showSg();
+   o.querySelector('#ce_sgup').onclick=function(){o.querySelector('#ce_sgf').click()};o.querySelector('#ce_sgrm').onclick=function(){delete C.signImg;showSg()};
+   o.querySelector('#ce_sgf').onchange=function(){var f=this.files&&this.files[0];if(!f)return;var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){var k=Math.min(1,420/im.width,150/im.height),cv=document.createElement('canvas');cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);C.signImg=cv.toDataURL('image/png');if(C.signImg.length>200000)C.signImg=cv.toDataURL('image/jpeg',.8);showSg()};im.src=fr.result};fr.readAsDataURL(f)};
+   (function(){var pad=o.querySelector('#ce_pad'),px=pad.getContext('2d'),dr=false,lx=0,ly=0,ink=o.querySelector('#ce_ink');px.lineCap='round';px.lineJoin='round';px.lineWidth=3.2;
+    function pt(e){var r=pad.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return [(t.clientX-r.left)*pad.width/r.width,(t.clientY-r.top)*pad.height/r.height]}
+    function dn(e){e.preventDefault();dr=true;var p=pt(e);lx=p[0];ly=p[1];px.strokeStyle=ink.value;px.beginPath();px.arc(lx,ly,1.4,0,7);px.fillStyle=ink.value;px.fill()}
+    function mv(e){if(!dr)return;e.preventDefault();var p=pt(e);px.strokeStyle=ink.value;px.beginPath();px.moveTo(lx,ly);px.lineTo(p[0],p[1]);px.stroke();lx=p[0];ly=p[1]}
+    function up(){dr=false}
+    pad.addEventListener('mousedown',dn);pad.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);pad.addEventListener('touchstart',dn,{passive:false});pad.addEventListener('touchmove',mv,{passive:false});pad.addEventListener('touchend',up);
+    o.querySelector('#ce_padclr').onclick=function(){px.clearRect(0,0,pad.width,pad.height)};
+    o.querySelector('#ce_paduse').onclick=function(){var d=px.getImageData(0,0,pad.width,pad.height).data,x0=1e9,y0=1e9,x1=-1,y1=-1,i,x,y;for(i=3;i<d.length;i+=4){if(d[i]>10){var q=(i-3)/4;x=q%pad.width;y=Math.floor(q/pad.width);if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}}
+     if(x1<0){alert('પહેલા સહી કરો');return}var w=x1-x0+12,h2=y1-y0+12,cv=document.createElement('canvas');cv.width=w;cv.height=h2;cv.getContext('2d').drawImage(pad,x0-6,y0-6,w,h2,0,0,w,h2);C.signImg=cv.toDataURL('image/png');showSg()}})();
    o.querySelector('#ce_up').onclick=function(){o.querySelector('#ce_f').click()};o.querySelector('#ce_rm').onclick=function(){delete C.logo;showLogo()};
    o.querySelector('#ce_f').onchange=function(){var f=this.files&&this.files[0];if(!f)return;var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){var k=Math.min(1,420/im.width,200/im.height),cv=document.createElement('canvas');cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);C.logo=cv.toDataURL('image/png');if(C.logo.length>400000)C.logo=cv.toDataURL('image/jpeg',.85);showLogo()};im.src=fr.result};fr.readAsDataURL(f)};
-   o.querySelector('#ce_save').onclick=function(){C=Object.assign(C,read());if(!o.querySelector('#ce_logo').src||lg.style.display==='none')delete C.logo;try{localStorage.setItem('certCfg',JSON.stringify(C))}catch(x){alert('Logo બહુ મોટો છે')}var m=o.querySelector('#tcm');CERT.prep().then(function(){m.textContent='✅ Save થયું — Winners ના phone માં આ જ Certificate દેખાશે'})};
+   o.querySelector('#ce_save').onclick=function(){C=Object.assign(C,read());if(sgi.style.display==='none')delete C.signImg;if(!o.querySelector('#ce_logo').src||lg.style.display==='none')delete C.logo;try{localStorage.setItem('certCfg',JSON.stringify(C))}catch(x){alert('Logo બહુ મોટો છે')}var m=o.querySelector('#tcm');CERT.prep().then(function(){m.textContent='✅ Save થયું — Winners ના phone માં આ જ Certificate દેખાશે'})};
    o.querySelector('#ce_pv').onclick=function(){C=Object.assign(C,read());try{localStorage.setItem('certCfg',JSON.stringify(C))}catch(x){}CERT.fonts().then(CERT.prep).then(function(){var d=(CERT.list()[0])||{name:'વિજેતા નું નામ',zone:'Zone',label:'1 Line',detail:'⏱ 1 મિનિટ 23 સેકન્ડ માં',code:(room()&&room().code)||'ROOM'};var im=o.querySelector('#ce_img');im.src=CERT.draw(d).toDataURL('image/jpeg',.8);im.style.display='block'})}})();
   (function(){var box=o.querySelector('#tcr'),m=o.querySelector('#tcm');var rv=room()&&room().status==='revealed';
    if(!rv){box.innerHTML='<div class="muted" style="margin:6px 0">⏳ Result Reveal થયા પછી ઉપલબ્ધ થશે.</div>';o.querySelector('#tcall').disabled=true;o.querySelector('#trep').disabled=true;return}
@@ -2491,31 +2516,58 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
  var CSERIF="'Playfair Display','Noto Serif Gujarati','Noto Sans Gujarati',Georgia,serif",CDISP="'Cinzel','Noto Serif Gujarati',Georgia,serif",CSANS="'Noto Sans Gujarati','Shruti','Nirmala UI','Segoe UI',system-ui,sans-serif";
  function cfit(g,t,max,size,wt,fam,min){var s=size;g.font=wt+' '+s+'px '+fam;while(g.measureText(t).width>max&&s>(min||24)){s-=2;g.font=wt+' '+s+'px '+fam}return s}
  function certDraw(d,C,img){C=C||{};var W=1754,H=1240,c=document.createElement('canvas');c.width=W;c.height=H;var g=c.getContext('2d'),A=/^#[0-9a-f]{6}$/i.test(C.color||'')?C.color:'#b8860b';
-  var bg=g.createRadialGradient(W/2,H*.4,100,W/2,H/2,W*.7);bg.addColorStop(0,'#fffdf5');bg.addColorStop(1,'#f6ead0');g.fillStyle=bg;g.fillRect(0,0,W,H);
-  g.strokeStyle=A;g.lineWidth=12;g.strokeRect(28,28,W-56,H-56);g.lineWidth=3;g.strokeRect(54,54,W-108,H-108);
-  g.fillStyle=A;[[28,28],[W-28,28],[28,H-28],[W-28,H-28]].forEach(function(p){g.save();g.translate(p[0],p[1]);g.rotate(Math.PI/4);g.fillStyle=A;g.fillRect(-16,-16,32,32);g.fillStyle='#fffaf0';g.fillRect(-7,-7,14,14);g.restore()});
+  function mx(a,b,t){var x=[1,3,5].map(function(i){return parseInt(a.substr(i,2),16)}),y=[1,3,5].map(function(i){return parseInt(b.substr(i,2),16)});return '#'+x.map(function(v,i){var n=Math.round(v+(y[i]-v)*t).toString(16);return n.length<2?'0'+n:n}).join('')}
+  var A2=mx(A,'#000000',.38),A3=mx(A,'#ffffff',.45),RB=['#E53935','#FB8C00','#FDD835','#43A047','#00ACC1','#3949AB','#8E24AA'];
+  // ivory base + soft multicolour corner glows
+  g.fillStyle='#fffaf0';g.fillRect(0,0,W,H);
+  [[0,0,RB[0]],[W,0,RB[4]],[0,H,RB[2]],[W,H,RB[6]]].forEach(function(p){var r=g.createRadialGradient(p[0],p[1],10,p[0],p[1],620);r.addColorStop(0,p[2]+'38');r.addColorStop(1,p[2]+'00');g.fillStyle=r;g.fillRect(0,0,W,H)});
+  var cg=g.createRadialGradient(W/2,H*.45,50,W/2,H*.45,760);cg.addColorStop(0,'rgba(255,255,255,.9)');cg.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=cg;g.fillRect(0,0,W,H);
+  // guilloche rings + watermark logo
+  g.save();g.strokeStyle=A;g.globalAlpha=.05;g.lineWidth=2;for(var i=1;i<=22;i++){g.beginPath();g.arc(W/2,H*.5,i*36,0,Math.PI*2);g.stroke()}g.restore();
+  if(img&&img.width){var wk=Math.min(620/img.width,620/img.height);g.save();g.globalAlpha=.07;g.drawImage(img,W/2-img.width*wk/2,H*.52-img.height*wk/2,img.width*wk,img.height*wk);g.restore()}
+  // rainbow frame + gold double line
+  var fr=g.createLinearGradient(0,0,W,0);RB.forEach(function(c1,i){fr.addColorStop(i/(RB.length-1),c1)});
+  g.strokeStyle=fr;g.lineWidth=18;g.strokeRect(26,26,W-52,H-52);
+  g.strokeStyle=A;g.lineWidth=3;g.strokeRect(52,52,W-104,H-104);g.lineWidth=1.2;g.strokeRect(62,62,W-124,H-124);
+  [[52,52],[W-52,52],[52,H-52],[W-52,H-52]].forEach(function(p,i){g.save();g.translate(p[0],p[1]);g.rotate(Math.PI/4);g.fillStyle=A;g.fillRect(-24,-24,48,48);g.fillStyle=RB[(i*2)%7];g.fillRect(-15,-15,30,30);g.fillStyle='#fffaf0';g.fillRect(-6,-6,12,12);g.restore()});
+  // confetti in the side margins
+  var sd=7;function rn(){sd=(sd*9301+49297)%233280;return sd/233280}
+  for(var k=0;k<46;k++){var side=k%2?1:0,x=side?W-70-rn()*60:70+rn()*60,y=120+rn()*(H-240);g.save();g.translate(x,y);g.rotate(rn()*3);g.fillStyle=RB[k%7];g.globalAlpha=.85;g.fillRect(-7,-3,14,6);g.restore()}
   g.textAlign='center';
-  if(img&&img.width){var k=Math.min(420/img.width,166/img.height,2),iw=img.width*k,ih=img.height*k;g.save();g.shadowColor='rgba(0,0,0,.25)';g.shadowBlur=14;g.drawImage(img,W/2-iw/2,64+(166-ih)/2,iw,ih);g.restore()}else{g.font='90px '+CSANS;g.fillStyle='#000';g.fillText('🏆',W/2,175)}
-  g.fillStyle=A;g.font='700 34px '+CDISP;g.fillText((C.sub||'CERTIFICATE OF ACHIEVEMENT').toUpperCase(),W/2,265);
-  g.fillStyle='#3b2a00';var ts=cfit(g,C.title||'પ્રમાણપત્ર',W-400,78,900,CSERIF,40);g.font='900 '+ts+'px '+CSERIF;g.fillText(C.title||'પ્રમાણપત્ર',W/2,355);
-  g.fillStyle='#6b5a2e';var ms=cfit(g,C.msg||'આ પ્રમાણપત્ર અભિનંદન સાથે આપવામાં આવે છે',W-300,34,600,CSANS,20);g.font='600 '+ms+'px '+CSANS;g.fillText(C.msg||'આ પ્રમાણપત્ર અભિનંદન સાથે આપવામાં આવે છે',W/2,445);
-  var s=cfit(g,d.name,W-340,150,900,CSERIF,60);g.fillStyle='#1f1400';g.font='900 '+s+'px '+CSERIF;g.fillText(d.name,W/2,620);
-  var ln=g.createLinearGradient(W*.2,0,W*.8,0);ln.addColorStop(0,'rgba(184,134,11,0)');ln.addColorStop(.5,A);ln.addColorStop(1,'rgba(184,134,11,0)');g.fillStyle=ln;g.fillRect(W*.2,652,W*.6,4);
-  if(d.zone){g.fillStyle='#6b5a2e';g.font='700 42px '+CDISP;g.fillText('ZONE · '+d.zone,W/2,722)}
-  var lab=d.label,ps=cfit(g,lab,W-500,66,800,CSERIF,34);g.font='800 '+ps+'px '+CSERIF;var pw=g.measureText(lab).width+120;
-  g.fillStyle=A;g.beginPath();g.roundRect(W/2-pw/2,765,pw,104,52);g.fill();g.fillStyle='#fffaf0';g.fillText(lab,W/2,837);
-  g.fillStyle='#3b2a00';var dt0=d.detail||'';if(dt0){var dsz=cfit(g,dt0,W-300,44,700,CSERIF,24);g.font='700 '+dsz+'px '+CSERIF;g.fillText(dt0,W/2,945)}
-  var ev=C.event||'જ્ઞાન શોધ · THE BEGINNING';g.fillStyle='#6b5a2e';var es=cfit(g,ev,W-300,32,700,CSANS,20);g.font='700 '+es+'px '+CSANS;g.fillText(ev,W/2,1020);
-  var dt=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
-  g.font='600 28px '+CSANS;g.textAlign='left';g.fillText('તારીખ: '+dt,150,1135);g.textAlign='right';g.fillText('Room: '+(d.code||''),W-150,1135);
-  g.textAlign='center';if(C.signer){g.fillStyle='#1f1400';var ss=cfit(g,C.signer,420,40,700,CSERIF,22);g.font='italic 700 '+ss+'px '+CSERIF;g.fillText(C.signer,W/2,1100)}
-  g.fillStyle=A;g.fillRect(W/2-190,1112,380,2);g.fillStyle='#6b5a2e';g.font='600 26px '+CSANS;g.fillText(C.org||'Host / Organizer',W/2,1150);
+  if(img&&img.width){var k2=Math.min(420/img.width,160/img.height,2),iw=img.width*k2,ih=img.height*k2;g.save();g.shadowColor='rgba(0,0,0,.3)';g.shadowBlur=16;g.drawImage(img,W/2-iw/2,78+(160-ih)/2,iw,ih);g.restore()}else{g.font='90px '+CSANS;g.fillStyle='#000';g.fillText('🏆',W/2,175)}
+  // sub title with flourishes
+  var sub=(C.sub||'CERTIFICATE OF ACHIEVEMENT').toUpperCase();g.fillStyle=A2;g.font='700 34px '+CDISP;g.fillText(sub,W/2,277);var sw=g.measureText(sub).width;g.fillStyle=A;[-1,1].forEach(function(s){g.fillRect(W/2+s*(sw/2+30)-(s<0?170:0),272,170,3);g.beginPath();g.arc(W/2+s*(sw/2+20),273,6,0,7);g.fill()});
+  // title: gradient
+  var tt=C.title||'પ્રમાણપત્ર',ts=cfit(g,tt,W-400,80,900,CSERIF,40);g.font='900 '+ts+'px '+CSERIF;var tw=g.measureText(tt).width,tg=g.createLinearGradient(W/2-tw/2,0,W/2+tw/2,0);tg.addColorStop(0,A2);tg.addColorStop(.5,A);tg.addColorStop(1,'#5B21B6');g.fillStyle=tg;g.fillText(tt,W/2,368);
+  var mm=C.msg||'આ પ્રમાણપત્ર અભિનંદન સાથે આપવામાં આવે છે';g.fillStyle='#5a4a22';var ms=cfit(g,mm,W-300,34,600,CSANS,20);g.font='600 '+ms+'px '+CSANS;g.fillText(mm,W/2,448);
+  // name
+  var s=cfit(g,d.name,W-340,150,900,CSERIF,60);g.fillStyle='#1f1400';g.font='900 '+s+'px '+CSERIF;g.save();g.shadowColor='rgba(0,0,0,.18)';g.shadowBlur=8;g.shadowOffsetY=3;g.fillText(d.name,W/2,620);g.restore();
+  var ln=g.createLinearGradient(W*.2,0,W*.8,0);RB.forEach(function(c1,i){ln.addColorStop(i/(RB.length-1),c1)});g.fillStyle=ln;g.fillRect(W*.2,654,W*.6,6);
+  if(d.zone){g.fillStyle='#5a4a22';g.font='700 42px '+CDISP;g.fillText('ZONE · '+d.zone,W/2,724)}
+  // achievement pill
+  var lab=d.label,ps=cfit(g,lab,W-500,66,800,CSERIF,34);g.font='800 '+ps+'px '+CSERIF;var pw=g.measureText(lab).width+130;
+  var pg=g.createLinearGradient(0,765,0,869);pg.addColorStop(0,A3);pg.addColorStop(.18,A);pg.addColorStop(1,A2);g.save();g.shadowColor=A+'88';g.shadowBlur=26;g.shadowOffsetY=8;g.fillStyle=pg;g.beginPath();g.roundRect(W/2-pw/2,765,pw,104,52);g.fill();g.restore();g.strokeStyle='#fffaf0';g.lineWidth=4;g.beginPath();g.roundRect(W/2-pw/2+8,773,pw-16,88,44);g.stroke();g.fillStyle='#fffdf5';g.fillText(lab,W/2,837);
+  g.fillStyle='#3b2a00';var dt0=d.detail||'';if(dt0){var dsz=cfit(g,dt0,W-300,44,700,CSERIF,24);g.font='700 '+dsz+'px '+CSERIF;g.fillText(dt0,W/2,938)}
+  var ev=C.event||'જ્ઞાન શોધ · THE BEGINNING';g.fillStyle='#5a4a22';var es=cfit(g,ev,W-500,32,700,CSANS,20);g.font='700 '+es+'px '+CSANS;g.fillText(ev,W/2,992);
+  // bottom: date | seal | signature
+  var dt=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'}),LY=1102;
+  g.fillStyle='#3b2a00';g.font='700 30px '+CSANS;g.fillText(dt,350,LY-12);g.fillStyle=A;g.fillRect(350-170,LY,340,3);g.fillStyle='#5a4a22';g.font='600 24px '+CSANS;g.fillText('તારીખ / Date',350,LY+36);
+  var sg=C._sig,SX=W-350;
+  if(sg&&sg.width){var q=Math.min(330/sg.width,96/sg.height,3),sw2=sg.width*q,sh2=sg.height*q;g.drawImage(sg,SX-sw2/2,LY-sh2-4,sw2,sh2)}
+  else if(C.signer){g.fillStyle='#1f1400';var ss0=cfit(g,C.signer,330,44,700,CSERIF,22);g.font='italic 700 '+ss0+'px '+CSERIF;g.fillText(C.signer,SX,LY-14)}
+  g.fillStyle=A;g.fillRect(SX-170,LY,340,3);
+  if(sg&&sg.width&&C.signer){g.fillStyle='#1f1400';var ss=cfit(g,C.signer,340,34,800,CSERIF,20);g.font='800 '+ss+'px '+CSERIF;g.fillText(C.signer,SX,LY+34)}
+  g.fillStyle='#5a4a22';g.font='600 24px '+CSANS;g.fillText(C.org||'Host / Organizer',SX,LY+(sg&&sg.width&&C.signer?66:36));
+  // gold seal
+  var cx=W/2,cy=1080,R=68,pts=28;g.save();g.shadowColor='rgba(0,0,0,.3)';g.shadowBlur=14;g.shadowOffsetY=5;var sgd=g.createRadialGradient(cx-18,cy-20,6,cx,cy,R);sgd.addColorStop(0,'#fff3b0');sgd.addColorStop(.55,'#e0b030');sgd.addColorStop(1,'#a06f0a');g.fillStyle=sgd;g.beginPath();for(var i2=0;i2<pts*2;i2++){var a=i2*Math.PI/pts,r=i2%2?R-9:R;g.lineTo(cx+r*Math.sin(a),cy-r*Math.cos(a))}g.closePath();g.fill();g.restore();
+  g.strokeStyle='#fff3b0';g.lineWidth=3;g.beginPath();g.arc(cx,cy,R-20,0,7);g.stroke();g.fillStyle='#7a5200';g.font='900 52px '+CSANS;g.fillText('★',cx,cy+18);
+  g.fillStyle='#5a4a22';g.font='600 22px '+CSANS;g.fillText('Room: '+(d.code||''),cx,1166);
   return c}
- function certLoad(url){return new Promise(function(res){if(!url)url='logo.png';var i=new Image();i.onload=function(){res(i)};i.onerror=function(){res(null)};i.src=url})}
- var LOGO=null;
+ function certLoad(url,nodef){return new Promise(function(res){if(!url){if(nodef)return res(null);url='logo.png'}var i=new Image();i.onload=function(){res(i)};i.onerror=function(){res(null)};i.src=url})}
+ var LOGO=null,SIG=null;
  function cfgNow(){try{return JSON.parse(localStorage.getItem('certCfg')||'{}')}catch(e){return {}}}
- function certCanvas(d){return certDraw(d,cfgNow(),LOGO)}
- function prep(){var C=cfgNow();try{if(typeof socket!=='undefined'&&state&&state.code)socket.emit('host:setCert',{code:state.code,cert:C})}catch(e){}return certLoad(C.logo).then(function(i){LOGO=i})}
+ function certCanvas(d){var C=cfgNow();C._sig=SIG;return certDraw(d,C,LOGO)}
+ function prep(){var C=cfgNow();try{if(typeof socket!=='undefined'&&state&&state.code)socket.emit('host:setCert',{code:state.code,cert:C})}catch(e){}return Promise.all([certLoad(C.logo),certLoad(C.signImg,1)]).then(function(a){LOGO=a[0];SIG=a[1]})}
 
  function ascii(s){return s}
  function pdf(pages,pw,ph){ // pages: [{url (jpeg dataURL), w, h}] ; pw,ph in points
@@ -2900,5 +2952,12 @@ function readCfgFields(){ if(!document.getElementById('rn0')) return {}; var rn=
 #pj:has(.pjw) .pjfw{font-size:clamp(1.2rem,4.5vh,3rem)!important;line-height:1.1}
 </style>
 <style id="up-pjc">#pj{background:radial-gradient(1200px 700px at 50% -10%,var(--pjg,var(--pl)),var(--pjb,var(--pd)) 60%,var(--pjd,#0d0a1c))!important}.pjh:empty{display:none}</style>
+<style id="up-fit2">
+#pj .pjqs{position:fixed;top:72px;right:24px;z-index:5;background:rgba(255,255,255,.16);border:2px solid var(--ts);border-radius:999px;padding:6px 18px;font-weight:800;font-size:clamp(1rem,3vh,1.7rem);color:#fff;box-shadow:0 0 18px rgba(var(--srg),.5)}
+#pj .pjqs b{color:var(--tl1);font-size:1.25em}
+#pj .pjfire[style*="475569"]{position:fixed!important;top:128px;right:24px;z-index:5;margin:0!important}
+.pjbar .tm.cur{background:#fff!important;color:var(--tdeep)!important;box-shadow:0 0 0 3px var(--ts),0 0 16px var(--ts)!important;transform:scale(1.1);font-weight:900}
+.pjbar .lbl .tmv{color:var(--tl1);font-size:1.2em}
+</style>
 </body>
 </html>

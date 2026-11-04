@@ -1,3 +1,8 @@
+# 🆕 Update 4
+- Wheel: Spin dabavta previous question no number wheel ma thi fade thai ne jato rahe, wheel upright (middle) ma aavi ne pachhi spin thay. Projector par pan.
+- Projector par "⏱ સમય 15 sec" spasht dekhay + control bar ma selected time highlight.
+- Certificate: Host Signature (photo upload athva Mouse/aangli thi sahi), naam ane designation edit; colourful premium design (rainbow frame, gold seal, gradient title, logo watermark).
+
 # 🆕 Update 3
 - Projector par Logo/Name nathi. Zone Winner ma Zone naam + sarerash Score + kul + Players ek j screen ma. Score winners ma Score + Sacha/Khota.
 - Projector no colour: Host Lobby > 🎨 Game ના Colours > "📺 Projector Screen નો Colour" (Background + Glow, RGB code pan). "↺ Theme jevo" thi reset.
