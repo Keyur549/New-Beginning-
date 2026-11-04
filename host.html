@@ -2398,12 +2398,12 @@ function pvAnnounce(r){var O=(typeof WINNER_ORDER!=='undefined')?WINNER_ORDER:[]
   return (o||tie)?'<div class="pjclaim">'+o+(tie?'<small>⚖️ Tie-break: '+esc2(tie===true?'સૌથી પહેલા Claim':tie)+'</small>':'')+'</div>':''}
  function html(r){var st=r.status;
   if(st==='active'||st==='spinning'||st==='revealing'||st==='locked'){
-   return '<div class="pjh"></div>'+'<div class="pjqs">⏱ સમય <b>'+(r.qSec||30)+'</b> sec</div>'+(r.round!=null?'<div class="pjs">ROUND '+((r.round||0)+1)+'</div>'+RNM(r):'')+(st==='locked'?'<div class="pjfire" style="background:linear-gradient(90deg,#475569,#1e293b);box-shadow:none;animation:none">⏱ સમય પૂરો — '+(((r.usedIdx||[]).filter(function(i){var p_=(r.cfg&&r.cfg.perRound)||5;return Math.floor(i/p_)===(r.round||0)}).length>=((r.cfg&&r.cfg.perRound)||5))?'Round પૂરો, Mystery Box શરૂ કરો':'હવે Spin દબાવો')+'</div>':'')+stage(r)+(st==='active'&&!(r.usedIdx||[]).length?'<div class="pjs">Game શરૂ થાય છે…</div>':'')+(st==='revealing'?'<div class="pjs">હવે પ્રશ્ન આવે છે…</div>':'')+bars(r)+ctl(r)}
+   return '<div class="pjh"></div>'+'<div class="pjqs">⏱ સમય <b>'+(r.qSec||30)+'</b> sec</div>'+(r.round!=null?RBADGE(r):'')+(st==='locked'?'<div class="pjfire" style="background:linear-gradient(90deg,#475569,#1e293b);box-shadow:none;animation:none">⏱ સમય પૂરો — '+(((r.usedIdx||[]).filter(function(i){var p_=(r.cfg&&r.cfg.perRound)||5;return Math.floor(i/p_)===(r.round||0)}).length>=((r.cfg&&r.cfg.perRound)||5))?'Round પૂરો, Mystery Box શરૂ કરો':'હવે Spin દબાવો')+'</div>':'')+stage(r)+(st==='active'&&!(r.usedIdx||[]).length?'<div class="pjs">Game શરૂ થાય છે…</div>':'')+(st==='revealing'?'<div class="pjs">હવે પ્રશ્ન આવે છે…</div>':'')+bars(r)+ctl(r)}
   if(st==='box'){var pk=0,tp=Object.keys(r.players||{}),rm=Math.max(0,Math.ceil(((r.boxEnd||0)-Date.now())/1000));tp.forEach(function(n){if(((r.players[n].boxPick||[])[r.round])!=null)pk++});
-   return '<div class="pjh"></div><div class="pjs">ROUND '+((r.round||0)+1)+' પૂરો</div>'+RNM(r)+'<div class="pjboxes">'+[1,2,3,4,5,6,7].map(function(i){return '<div class="mbox">🎁<small>'+i+'</small></div>'}).join('')+'</div><div class="pjs">Mystery Box</div><div class="pjt'+(rm<=10&&!r.boxAuto?' lo':'')+'">'+(r.boxAuto?'⏱':rm+'s')+'</div><div class="pjs">✅ '+pk+' / '+tp.length+' Players એ Box પસંદ કર્યું</div>'+ctl(r)}
+   return '<div class="pjh"></div>'+RBADGE(r,0,'પૂરો')+'<div class="pjboxes">'+[1,2,3,4,5,6,7].map(function(i){return '<div class="mbox">🎁<small>'+i+'</small></div>'}).join('')+'</div><div class="pjs">Mystery Box</div><div class="pjt'+(rm<=10&&!r.boxAuto?' lo':'')+'">'+(r.boxAuto?'⏱':rm+'s')+'</div><div class="pjs">✅ '+pk+' / '+tp.length+' Players એ Box પસંદ કર્યું</div>'+ctl(r)}
   if(st==='opening')return '<div class="pjh"></div><div class="pjbig">🏁</div><div class="pjs">બધા Round પૂરા</div><div class="pjs">Mystery Box ના Result Players ને દેખાય છે</div>'+ctl(r)
   var h=html0(r);
-  if(st==='question'){h=h.replace(/<div class="pjs">પ્રશ્ન \d+[^<]*<\/div>/,r.round!=null?'<div class="pjs">Round '+((r.round||0)+1)+'</div>':'')}
+  if(st==='question'){h=h.replace(/<div class="pjs">પ્રશ્ન \d+[^<]*<\/div>/,r.round!=null?RBADGE(r,1):'')}
   if(st==='lobby'){h=h.replace('<div class="pjrow">','<div id="pjjw"></div><div class="pjrow">')}
   if(st==='question'&&!r.paused){h=h.replace('<div class="pjh">',fireChk(r)+'<div class="pjh">')}
   if((st==='question'||st==='locked')&&r.curIdx!=null)h=h.replace('<div class="pjh">','<div class="pjchip">🎡 નંબર '+(r.curIdx+1)+'</div><div class="pjh">');
@@ -2965,6 +2965,21 @@ function readCfgFields(){ if(!document.getElementById('rn0')) return {}; var rn=
 #pj .pjfire[style*="475569"]{position:fixed!important;top:128px;right:24px;z-index:5;margin:0!important}
 .pjbar .tm.cur{background:#fff!important;color:var(--tdeep)!important;box-shadow:0 0 0 3px var(--ts),0 0 16px var(--ts)!important;transform:scale(1.1);font-weight:900}
 .pjbar .lbl .tmv{color:var(--tl1);font-size:1.2em}
+</style>
+<script id="up-rbadge">
+function RBADGE(r,sm,suf){ var i=(r&&r.round)||0,nm=r&&r.cfg&&r.cfg.roundNames&&r.cfg.roundNames[i],e=function(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+ return '<div class="pjrb'+(sm?' sm':'')+'"><div class="pjrb-k"><i></i><span>ROUND '+(i+1)+(suf?' · '+e(suf):'')+'</span><i></i></div>'+(nm?'<div class="pjrb-n">'+e(nm)+'</div>':'')+'</div>'; }
+</script>
+<style id="up-rbadge-css">
+.pjrb{display:flex;flex-direction:column;align-items:center;gap:.4vh;margin:.4vh 0}
+.pjrb-k{display:flex;align-items:center;gap:1.4vmin;font-family:var(--fn);font-weight:800;letter-spacing:.5em;font-size:clamp(.9rem,2.6vh,1.6rem);color:var(--tl1);text-shadow:0 0 14px rgba(var(--srg),.7)}
+.pjrb-k span{margin-right:-.5em}
+.pjrb-k i{display:block;width:clamp(36px,9vh,110px);height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,var(--ts))}
+.pjrb-k i:last-child{background:linear-gradient(270deg,transparent,var(--ts))}
+.pjrb-n{font-family:var(--fh);font-weight:700;line-height:1.35;font-size:clamp(2rem,8.5vh,5.2rem);padding:0 .2em;background:linear-gradient(180deg,#fff 0%,var(--tl1) 55%,var(--ts) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 4px 16px rgba(var(--srg),.45));max-width:94vw;overflow-wrap:anywhere}
+.pjrb.sm{flex-direction:row;gap:1.6vmin;padding:.5vh 2.2vmin;border-radius:999px;border:2px solid var(--ts);background:rgba(255,255,255,.1);box-shadow:0 0 22px rgba(var(--srg),.35)}
+.pjrb.sm .pjrb-k{font-size:clamp(.8rem,2.3vh,1.3rem);letter-spacing:.35em}.pjrb.sm .pjrb-k i{display:none}
+.pjrb.sm .pjrb-n{font-size:clamp(1.3rem,4.6vh,2.8rem);line-height:1.3}
 </style>
 </body>
 </html>
