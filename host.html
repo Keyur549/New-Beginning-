@@ -43,30 +43,30 @@ label{font-weight:600;font-size:.9rem;color:var(--pd)}
 .btn.sm{padding:7px 12px;font-size:.88rem}
 .btn[disabled]{opacity:.4;pointer-events:none}
 /* stage = projector scene (dark, like the Ranbhoomi board) */
-.stage{position:relative;border-radius:18px;padding:22px 26px;color:#FFF3D6;min-height:380px;display:flex;flex-direction:column;gap:16px;background:radial-gradient(900px 500px at 100% 0%,rgba(109,40,217,.45),transparent 60%),radial-gradient(700px 400px at 0% 100%,rgba(245,158,11,.18),transparent 60%),#170B3B}
+.stage{position:relative;border-radius:18px;padding:22px 26px;color:#FFF3D6;min-height:380px;display:flex;flex-direction:column;gap:16px;background:radial-gradient(900px 500px at 100% 0%,var(--s1),transparent 60%),radial-gradient(700px 400px at 0% 100%,var(--s2),transparent 60%),var(--sb)}
 .pjroot{min-height:100vh;border-radius:0;padding:32px 56px;font-size:calc(14px + .5vw)}
-.kick{font-size:.95em;font-weight:600;letter-spacing:.14em;color:#F59E0B}
+.kick{font-size:.95em;font-weight:600;letter-spacing:.14em;color:var(--ac)}
 .big{font-family:var(--fh);font-weight:700;line-height:1.15;font-size:2.6em;color:#FFF3D6}
-.tag{padding:8px 16px;border-radius:12px;background:#2E1065;font-size:1em}
-.tm{padding:8px 20px;border-radius:12px;background:#F59E0B;color:#1d1204;font-family:var(--fn);font-weight:800;font-size:1.8em}
+.tag{padding:8px 16px;border-radius:12px;background:var(--sc);font-size:1em}
+.tm{padding:8px 20px;border-radius:12px;background:var(--ac);color:#1d1204;font-family:var(--fn);font-weight:800;font-size:1.8em}
 .zgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;flex-grow:1}
-.zc{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;background:#2E1065}
+.zc{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;background:var(--sc)}
 .zc .nm{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:1.2em}
 .dot{width:14px;height:14px;border-radius:50%;display:inline-block}
 .fort{position:relative;flex-grow:1;min-height:90px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;overflow:hidden;border-radius:12px;background:#170B3B;padding-bottom:6px}
 .fort i{display:block;height:12px;border-radius:3px}
-.fort .tri{width:30px;height:22px;background:#F59E0B;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.fort .tri{width:30px;height:22px;background:var(--ac);clip-path:polygon(50% 0,100% 100%,0 100%)}
 .fog{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,43,46,.92),rgba(11,43,46,.55) 70%,rgba(11,43,46,.35));display:flex;align-items:center;justify-content:center;text-align:center;font-size:.8em;color:#E4DAF7;padding:0 8px}
 .bar2{height:10px;border-radius:999px;background:#170B3B;overflow:hidden}.bar2>div{height:100%;transition:width .5s}
 .sub{color:#C4B5FD;font-size:.9em}
-.win{position:relative;text-align:center;padding:34px 14px;border-radius:22px;background:linear-gradient(160deg,#6D28D9,#2E1065);box-shadow:0 0 0 3px rgba(255,215,0,.55),0 0 40px 8px rgba(255,215,0,.30);animation:pop .6s ease-out}
+.win{position:relative;text-align:center;padding:34px 14px;border-radius:22px;background:linear-gradient(160deg,var(--sp),var(--sc));box-shadow:0 0 0 3px rgba(255,215,0,.55),0 0 40px 8px rgba(255,215,0,.30);animation:pop .6s ease-out}
 .win .cat{font-family:var(--fh);font-size:1.7em;font-weight:700;color:#FDE68A}
 .win .av{font-size:4em;margin-top:6px}.win .nmx{font-family:var(--fh);font-size:2.4em;font-weight:700}
-.win .sc{font-family:var(--fn);font-size:2.2em;color:#F59E0B;font-weight:800}
+.win .sc{font-family:var(--fn);font-size:2.2em;color:var(--ac);font-weight:800}
 .strip{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-.strip>div{padding:6px 14px;border-radius:12px;background:#2E1065;font-size:.9em}
+.strip>div{padding:6px 14px;border-radius:12px;background:var(--sc);font-size:.9em}
 .names{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
-.names span{padding:5px 12px;border-radius:999px;background:#2E1065}
+.names span{padding:5px 12px;border-radius:999px;background:var(--sc)}
 .wheelbox{display:flex;justify-content:center}
 .wheel{position:relative;width:min(70vw,420px);aspect-ratio:1}
 .wheel svg{width:100%;height:100%}
@@ -79,6 +79,7 @@ label{font-weight:600;font-size:.9rem;color:var(--pd)}
 .plist span{display:inline-block;margin:2px;padding:2px 8px;border-radius:999px;background:var(--soft);border:1px solid var(--line)}
 .err{color:var(--red);font-weight:600;white-space:pre-wrap}
 .ans{padding:10px 14px;border-radius:12px;background:#FEF3C7;border:1px dashed var(--o2);font-weight:700}
+.sw{display:inline-block;width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--line);cursor:pointer;margin:3px}.sw.on{box-shadow:0 0 0 3px var(--p)}
 .qr svg{width:200px;height:200px;background:#fff;padding:8px;border-radius:12px}
 </style>
 </head>
@@ -1354,6 +1355,16 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const qs = new URLSearchParams(location.search);
 const PJ = (qs.get('pj')||'').toUpperCase();
+const THEMES = [
+ {n:'જાંબલી-સોનેરી',sb:'#170B3B',sc:'#2E1065',sp:'#6D28D9',ac:'#F59E0B',s1:'rgba(109,40,217,.45)',s2:'rgba(245,158,11,.18)'},
+ {n:'નીલમ',sb:'#06222B',sc:'#0B3B4A',sp:'#0E7490',ac:'#FBBF24',s1:'rgba(14,116,144,.50)',s2:'rgba(251,191,36,.16)'},
+ {n:'લીલો',sb:'#07251A',sc:'#0F3D2B',sp:'#15803D',ac:'#FDE047',s1:'rgba(21,128,61,.45)',s2:'rgba(253,224,71,.14)'},
+ {n:'ગુલાબી',sb:'#2A0A22',sc:'#4A1239',sp:'#BE185D',ac:'#FDBA74',s1:'rgba(190,24,93,.45)',s2:'rgba(253,186,116,.16)'},
+ {n:'કેસરી',sb:'#2B1205',sc:'#4A210A',sp:'#C2410C',ac:'#FCD34D',s1:'rgba(194,65,12,.45)',s2:'rgba(252,211,77,.16)'},
+ {n:'ઘેરો વાદળી',sb:'#0A1230',sc:'#14224F',sp:'#1D4ED8',ac:'#F59E0B',s1:'rgba(29,78,216,.45)',s2:'rgba(245,158,11,.16)'}];
+let TH = +(qs.get('t') || (()=>{try{return localStorage.getItem('sgTheme')}catch(e){return 0}})() || 0) || 0;
+function applyTheme(i){ TH = i; const t = THEMES[i] || THEMES[0], r = document.documentElement.style; ['sb','sc','sp','ac','s1','s2'].forEach(k => r.setProperty('--'+k, t[k])); try{localStorage.setItem('sgTheme',i);}catch(e){} }
+applyTheme(TH);
 const ZC = ['#F59E0B','#EC4899','#0D9488','#3B82F6','#22C55E','#8B5CF6','#EF4444','#06B6D4'];
 let S = null, CODE = PJ, view = 'login', msg = '';
 const zc = z => ZC[Math.max(0,(S&&S.zones||[]).indexOf(z)) % ZC.length];
@@ -1430,7 +1441,7 @@ function scene(){
     const url = location.origin + '/?code=' + S.code;
     const ps = (S.players||[]);
     return head('ધ સંગમ', 'સંગમમાં જોડાઓ', '<span class="tag">ખેલાડી '+S.nPlayers+'</span>') +
-      '<div style="display:flex;gap:28px;flex-wrap:wrap;align-items:center;justify-content:center"><div class="qr" id="qr"></div><div><div class="sub">Room Code</div><div class="code" style="color:#F59E0B">'+S.code+'</div><div class="sub" style="word-break:break-all">'+esc(url)+'</div></div></div>' +
+      '<div style="display:flex;gap:28px;flex-wrap:wrap;align-items:center;justify-content:center"><div class="qr" id="qr"></div><div><div class="sub">Room Code</div><div class="code" style="color:var(--ac)">'+S.code+'</div><div class="sub" style="word-break:break-all">'+esc(url)+'</div></div></div>' +
       '<div class="zgrid">'+S.zones.map(z => '<div class="zc"><div class="nm"><span>'+esc(z)+'</span><i class="dot" style="background:'+zc(z)+'"></i></div><div style="font-family:var(--fn);font-size:2em">'+S.byZone[z].n+'</div><div class="sub">'+ps.filter(p=>p.zone===z).slice(-6).map(p=>p.avatar+' '+esc(p.name)).join(' · ')+'</div></div>').join('')+'</div>';
   }
   if (st === 'pick') return head(ph, 'તમારી શુભ લાઇન અને કવચ પસંદ કરો', T+'<span class="tag">તૈયાર '+S.pickIn+' / '+S.nPlayers+'</span>') + '<div class="sub" style="font-size:1.2em">12 લાઇનમાંથી એક શુભ લાઇન (+10) અને કાર્ડનું એક કવચ ખાનું. બીજા કોઈને દેખાશે નહીં.</div>' + zonesBoard();
@@ -1483,11 +1494,12 @@ function ctrl(){
 function drawHost(){
   const keepTa = document.activeElement && document.activeElement.id==='nmIn';
   const q = S.curIdx!=null||S.qNo ? (S.questions||[])[S.qNo-1] : null;
-  const pj = location.origin + '/host.html?pj=' + S.code;
+  const pj = location.origin + '/host.html?pj=' + S.code + '&t=' + TH, plink = location.origin + '/?code=' + S.code;
   app.innerHTML = '<div class="wrap"><div class="card"><div class="row" style="justify-content:space-between"><div><h1>ધ સંગમ · '+esc(S.hostName||'')+'</h1><span class="pill">'+S.status+'</span><span class="pill">ખેલાડી '+S.nPlayers+'</span><span class="pill">'+S.qSec+' સે</span></div><div><span class="code">'+S.code+'</span></div></div>' +
     '<div class="row" style="margin-top:8px"><a class="btn sm ghost" href="'+pj+'" target="_blank" style="text-decoration:none">📽 Projector ખોલો</a>'+ctrl()+'<button class="btn sm ghost" data-ev="host:end" style="margin-left:auto">⛔ ગેમ સમાપ્ત</button></div>' +
     (q && (S.status==='question'||S.status==='locked'||S.status==='spinning'||S.status==='revealing') ? '<div class="ans" style="margin-top:8px">પ્રશ્ન '+S.qNo+' · જવાબ: '+esc(q.a)+'</div>' : '') + '</div>' +
     '<div class="stage" style="font-size:15px">'+scene()+'</div>' +
+    '<div class="card"><h2>Player link</h2><div class="row"><input id="plk" readonly value="'+plink+'" style="flex:1;min-width:220px"><button class="btn sm" data-copy="'+plink+'">📋 Copy</button><a class="btn sm or" target="_blank" style="text-decoration:none" href="https://wa.me/?text='+encodeURIComponent('ધ સંગમ ગેમમાં જોડાઓ 👉 '+plink+'  (Room code: '+S.code+')')+'">WhatsApp</a></div><h2 style="margin-top:12px">Colour</h2><div>'+THEMES.map((t,i)=>'<span class="sw'+(i===TH?' on':'')+'" data-th="'+i+'" title="'+t.n+'" style="background:linear-gradient(135deg,'+t.sp+' 50%,'+t.ac+' 50%)"></span>').join('')+'</div><div class="muted" style="font-size:.8rem">Projector લિંક (Colour સહિત) "📽 Projector ખોલો" થી ખૂલે છે.</div></div>' +
     '<div class="card"><h2>ખેલાડીઓ</h2><div class="plist">'+(S.players||[]).map(p => '<span title="'+esc(p.zone)+'" style="border-color:'+zc(p.zone)+'">'+esc(p.avatar)+' '+esc(p.name)+' ('+esc(p.zone)+')'+(p.online?'':' ⚠')+(S.status==='lobby'?' <a href="#" data-kick="'+p.key+'" style="color:var(--red)">✕</a>':'')+'</span>').join('')+'</div></div>' +
     '<div class="card"><h2>ફેઝનાં નામ</h2><input id="nmIn" value="'+esc(S.phaseNames.join(', '))+'"><button class="btn sm" id="nmGo">સેવ</button> <label style="margin-left:10px">પ્રશ્ન સમય</label> <input id="qsIn" type="number" value="'+S.qSec+'" style="width:90px;display:inline-block"><button class="btn sm" id="qsGo">સેવ</button></div></div>';
   paintQR(); if (S.status==='spinning'||S.status==='revealing') spinWheel();
@@ -1495,6 +1507,8 @@ function drawHost(){
   const qg = $('#qsGo'); if (qg) qg.onclick = () => emit('host:setQSec', { sec:+$('#qsIn').value });
 }
 document.addEventListener('click', e => {
+  const th = e.target.closest('[data-th]'); if (th) { applyTheme(+th.dataset.th); if (PJ) drawPJ(); else if (S) drawHost(); return; }
+  const cp = e.target.closest('[data-copy]'); if (cp) { const t = cp.dataset.copy; const done = () => { cp.textContent = '✔ Copied'; }; try { navigator.clipboard.writeText(t).then(done, () => { const i = $('#plk'); i.select(); document.execCommand('copy'); done(); }); } catch(_) { const i = $('#plk'); i.select(); document.execCommand('copy'); done(); } return; }
   const b = e.target.closest('[data-ev]'); if (b && !PJ) { const a = {}; if (b.dataset.n) a.n = +b.dataset.n; if (b.dataset.delta) a.delta = +b.dataset.delta; if (b.dataset.ev==='host:end') { if (!b.dataset.sure) { b.dataset.sure=1; b.textContent='ખાતરી? ફરી દબાવો'; return; } try{localStorage.removeItem('sgRoom');}catch(_){} setTimeout(()=>location.reload(),300); } emit(b.dataset.ev, a); }
   const k = e.target.closest('[data-kick]'); if (k) { e.preventDefault(); emit('host:kick', { key:k.dataset.kick }); }
 });
