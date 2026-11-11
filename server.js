@@ -1,695 +1,465 @@
+// ધ સંગમ — The Sangam (real-time quiz game, same style as The Beginning)
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-
-const app = express();
-const server = http.createServer(app);
-// 500-player settings: patient pings (mobile networks), big enough buffer for the host's backup, no per-socket zlib memory
-const io = new Server(server, { pingInterval: 20000, pingTimeout: 40000, maxHttpBufferSize: 8e6, perMessageDeflate: false });
-// one bad event must never take the whole game down
-process.on('uncaughtException', e => console.error('uncaughtException:', e && e.stack || e));
-process.on('unhandledRejection', e => console.error('unhandledRejection:', e));
-app.get('/health', (req,res) => res.type('text').send('ok'));
-// Files are served from public/ — or, if you uploaded everything flat (no folders, e.g. from a phone), from the project root.
-app.use((req,res,next)=>{
-  if (req.method!=='GET') return next();
-  let rel; try{ rel = decodeURIComponent(req.path); }catch(e){ return next(); }
-  if (rel.includes('..')) return next();
-  const _p=require('path'), _f=require('fs');
-  const base=_p.basename(rel);
-  if (!['.html','.png','.jpg','.jpeg','.gif','.webp','.svg','.json','.mp3','.m4a','.ogg','.wav','.aac'].includes(_p.extname(base).toLowerCase())) return next();
-  if (['config.json','package.json','package-lock.json'].includes(base)) return next();
-  for (const f of [_p.join(__dirname,'public',rel), _p.join(__dirname,base)]){
-    try{ if (_f.statSync(f).isFile()) return res.sendFile(f); }catch(e){}
-  }
-  next();
-});
-app.use(express.static('public'));
-app.get('/', (req,res)=>res.redirect('/player.html'+(req.query.code?'?code='+encodeURIComponent(req.query.code):'')));
-// Short Host links: /host or /admin open the Host page directly
-app.get(['/host','/admin'], (req,res)=>res.redirect('/host.html'));
-app.use(express.json({limit:'2mb'}));
-
-const HOST_ID = process.env.HOST_ID || 'admin';
-const HOST_PW = process.env.HOST_PW || 'gyan2026';
-
 const fs = require('fs');
 const path = require('path');
 
-// ---- Game settings (edit config.json to change round names, Box points, timers, scoring) ----
-const CFG_DEF = {
-  rounds: 7, perRound: 5,
-  roundNames: ['શરૂઆત','ગુજરાતની ઓળખ','ઉખાણાં અને કહેવત','લાઇટનિંગ','ઇમોજી રાઉન્ડ','હું કોણ છું?','ગ્રાન્ડ ફિનાલે'],
-  correctPts: 2, wrongPts: 1,
-  boxPool: [0,1,2,3,3,4,5],   // 7 Mystery Boxes per round (shuffled for every player)
-  lastRoundMult: 2,          // Box points of the LAST round are multiplied by this
-  boxSec: 10,                // seconds to pick a Box
-  cardCounts: [3,3,3,4,4,4,4] // answers on each player's card from Round 1..7 (sum must be 25)
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { pingInterval: 20000, pingTimeout: 40000, maxHttpBufferSize: 4e6, perMessageDeflate: false });
+process.on('uncaughtException', e => console.error('uncaughtException:', e && e.stack || e));
+process.on('unhandledRejection', e => console.error('unhandledRejection:', e));
+
+const HOST_ID = process.env.HOST_ID || 'admin';
+const HOST_PW = process.env.HOST_PW || 'gyan2026';
+const FAST = !!process.env.SG_FAST; // test mode: short timers
+
+// ---------- static files (public/ or flat project root, like The Beginning) ----------
+app.get('/health', (req, res) => res.type('text').send('ok'));
+const EXT = ['.html','.png','.jpg','.jpeg','.gif','.webp','.svg','.json'];
+function findFile(rel){
+  if (rel.includes('..')) return null;
+  const base = path.basename(rel);
+  if (['config.json','package.json','package-lock.json','server.js'].includes(base)) return null;
+  if (!EXT.includes(path.extname(base).toLowerCase())) return null;
+  if (base === 'chitra.svg' || /^chitra\.(jpg|jpeg|png|webp)$/i.test(base)) return null; // the hidden picture is served only at the end
+  for (const f of [path.join(__dirname,'public',rel), path.join(__dirname,base)]) { try { if (fs.statSync(f).isFile()) return f; } catch(e){} }
+  return null;
+}
+app.use((req, res, next) => {
+  if (req.method !== 'GET') return next();
+  let rel; try { rel = decodeURIComponent(req.path); } catch(e){ return next(); }
+  const f = findFile(rel); if (f) return res.sendFile(f);
+  next();
+});
+app.get('/', (req, res) => res.redirect('/player.html' + (req.query.code ? '?code=' + encodeURIComponent(req.query.code) : '')));
+app.get(['/host','/admin'], (req, res) => res.redirect('/host.html'));
+app.get('/api/default-questions', (req, res) => {
+  let t = ''; try { t = fs.readFileSync(path.join(__dirname,'questions.txt'),'utf8'); } catch(e){}
+  res.type('text/plain; charset=utf-8').send(t);
+});
+app.get('/api/room/:code', (req, res) => { const r = rooms[String(req.params.code||'').toUpperCase()]; if (!r) return res.json({ ok:false }); res.json({ ok:true, zones:r.zones, status:r.status, canJoin:(r.status==='lobby'||r.status==='pick'), n:Object.keys(r.players).length }); });
+function chitraFile(){
+  for (const n of ['chitra.jpg','chitra.jpeg','chitra.png','chitra.webp','chitra.svg']) {
+    for (const f of [path.join(__dirname,'public',n), path.join(__dirname,n)]) { try { if (fs.statSync(f).isFile()) return f; } catch(e){} }
+  }
+  return null;
+}
+// the hidden picture: only sent when this room has reached the final reveal
+app.get('/chitra/:code', (req, res) => {
+  const r = rooms[String(req.params.code||'').toUpperCase()];
+  if (!r || r.status !== 'reveal') return res.status(403).type('text').send('not yet');
+  const f = chitraFile(); if (!f) return res.status(404).type('text').send('no picture');
+  res.sendFile(f);
+});
+
+// ---------- settings ----------
+const PHASES = 4, PER = 9, NQ = PHASES * PER; // 36 questions
+const DEF = {
+  phaseNames: ['ફેઝ 1','ફેઝ 2','ફેઝ 3','ફેઝ 4'],
+  zones: ['A','B','C','D','E'],
+  qSec: 30, pickSec: FAST ? 4 : 60, yuddhSec: FAST ? 3 : 15, revealMs: FAST ? 200 : 1600
 };
-function loadConfig(){
-  let c = {};
-  try { c = JSON.parse(fs.readFileSync(path.join(__dirname,'config.json'),'utf8')); } catch(e){ console.log('config.json not read, using defaults'); }
-  const o = Object.assign({}, CFG_DEF, c);
-  if (!Array.isArray(o.boxPool) || o.boxPool.length !== 7) o.boxPool = CFG_DEF.boxPool;
-  if (!Array.isArray(o.cardCounts) || o.cardCounts.length !== o.rounds || o.cardCounts.reduce((a,b)=>a+b,0) !== 25) o.cardCounts = CFG_DEF.cardCounts;
-  o.roundNames = Array.from({length:o.rounds}, (_,i)=> (o.roundNames && o.roundNames[i]) || ('Round '+(i+1)));
-  return o;
-}
-const CFG = loadConfig();
-// per-room overrides (Host can edit Round names / Mystery Box points at Create Room or live from Host Tools)
-function RC(room){ const o=(room&&room.cfgOvr)||{}; return Object.assign({}, CFG, o); }
-function cleanTheme(t){ if(!t||typeof t!=='object') return null; const hx=v=>{ v=String(v||'').trim(); if(/^#[0-9a-fA-F]{6}$/.test(v)) return v.toLowerCase(); const m=v.match(/^(?:rgb\()?\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*\)?$/i); if(m&&+m[1]<256&&+m[2]<256&&+m[3]<256) return '#'+[m[1],m[2],m[3]].map(x=>(+x).toString(16).padStart(2,'0')).join(''); return null; }; const p=hx(t.p), s=hx(t.s), bg=hx(t.bg); if(!p||!s||!bg) return null; const o={p,s,bg,id:String(t.id||'custom').replace(/[^a-z0-9_-]/gi,'').slice(0,20)||'custom'}; if(t.rainbow||o.id==='fun') o.rainbow=true; return o; }
-function publicCfg(room){ const c=RC(room); return { theme:cleanTheme(c.theme), rounds:CFG.rounds, perRound:CFG.perRound, roundNames:c.roundNames, correctPts:c.correctPts, wrongPts:c.wrongPts, lastMult:c.lastRoundMult, boxSec:c.boxSec, introSec:INTRO_SEC }; }
-const INTRO_SEC = 7.5;
-function cleanNames(a){ return Array.from({length:CFG.rounds},(_,i)=>{ const v=(Array.isArray(a)&&a[i]!=null)?String(a[i]).trim().slice(0,40):''; return v||CFG.roundNames[i]; }); }
-function cleanPool(a){ if(!Array.isArray(a)||a.length!==CFG.boxPool.length) return null; const o=a.map(x=>Math.round(+x)); if(o.some(x=>!isFinite(x)||x<-50||x>50)) return null; return o; }
-function defaultQuestionsText(){
-  try { return fs.readFileSync(path.join(__dirname,'questions.txt'),'utf8'); } catch(e){ return ''; }
-}
-app.get('/api/default-questions', (req,res)=>{ res.type('text/plain; charset=utf-8').send(defaultQuestionsText()); });
-app.get('/api/config', (req,res)=>res.json(Object.assign(publicCfg(null),{boxPool:CFG.boxPool})));
+const FAST_FRAC = 1/3;            // marked in the first third of the time = colourful tile
+const PTS = { C: 1.5, B: 1, F: 0.5, line: 3, lineMax: 3, shubh: 10, chinh: 5, full: 5, duelWin: 2, duelTie: 1, baan: 1, dhal: 1, mitra: 1, mitraMax: 5 };
+const LINES = (() => { const L = []; for (let r=0;r<5;r++) L.push([0,1,2,3,4].map(c=>r*5+c)); for (let c=0;c<5;c++) L.push([0,1,2,3,4].map(r=>r*5+c)); L.push([0,6,12,18,24]); L.push([4,8,12,16,20]); return L; })();
+const LINE_NAMES = ['આડી 1','આડી 2','આડી 3','આડી 4','આડી 5','ઊભી 1','ઊભી 2','ઊભી 3','ઊભી 4','ઊભી 5','તિરછી 1','તિરછી 2'];
+const STEPS = ['tiles','yuddh','z3','z2','z1','p3','p2','p1','chinh','jodi','pratham','shiromani','chitra'];
 
-const LINES = (() => {
-  const L = [];
-  for (let r = 0; r < 5; r++) L.push([0,1,2,3,4].map(c => r*5+c));
-  for (let c = 0; c < 5; c++) L.push([0,1,2,3,4].map(r => r*5+c));
-  L.push([0,6,12,18,24]); L.push([4,8,12,16,20]);
-  return L;
-})();
-const WINNER_ORDER = ['line1','line2','line3','line4','line5','full','top3','top2','top1'];
-const WINNER_LABELS = {line1:'1 Line',line2:'2 Line',line3:'3 Line',line4:'4 Line',line5:'5 Line',full:'Full House',top3:'3rd Score',top2:'2nd Score',top1:'Overall Champion'};
+function shuffle(a){ const x=a.slice(); for(let i=x.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]]; } return x; }
+function randCode(){ const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s='SNGM'; for(let i=0;i<4;i++) s+=c[Math.floor(Math.random()*c.length)]; return s; }
+function tok(){ return 't'+Date.now().toString(36)+Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,10); }
+const phaseOf = qi => Math.floor(qi / PER);
 
-// One "Question::Answer" line (optional picture: [img:file.jpg] or [img:https://...])
+// ---------- questions: "Question::Answer" (optional [img:file]); 36 lines, optional "Phase N" headers ----------
 function parseLine(l){
   let img = '';
   l = l.replace(/\[img:\s*(\S+?)\s*\]/i, (m,u)=>{ img=u; return ''; }).trim();
-  if (img && !/^(https?:|data:|\/)/i.test(img)) img = '/qimg/' + encodeURIComponent(img.replace(/^qimg\//i,''));
-  // optional audio: [audio:song.mp3] (file in public/qaudio/) or [audio:https://...mp3]
-  let aud = '';
-  l = l.replace(/\[audio:\s*(\S+?)\s*\]/i, (m,u)=>{ aud=u; return ''; }).trim();
-  if (aud && !/^(https?:|data:|\/)/i.test(aud)) aud = '/qaudio/' + encodeURIComponent(aud.replace(/^qaudio\//i,''));
+  if (img && !/^(https?:|data:|\/)/i.test(img)) img = '/' + encodeURIComponent(img.replace(/^\/+/,''));
   let parts = null;
   if (l.includes('::')) parts = [l.split('::')[0], l.split('::').slice(1).join('::')];
   else if (l.includes(' - ')) parts = [l.split(' - ')[0], l.split(' - ').slice(1).join(' - ')];
-  else if ((l.match(/:/g)||[]).length===1) parts = l.split(':');
-  if (parts && parts[0].trim() && parts[1] && parts[1].trim()) { const o={q:parts[0].trim(), a:parts[1].trim()}; if(img) o.img=img; if(aud) o.aud=aud; return o; }
+  if (parts && parts[0].trim() && parts[1] && parts[1].trim()) { const o={q:parts[0].trim(), a:parts[1].trim()}; if(img) o.img=img; return o; }
   return null;
 }
-// Round-wise questions: a line "Round 3" starts round 3, followed by exactly 5 Question::Answer lines.
-function parseRounds(text){
-  const R = CFG.rounds, P = CFG.perRound;
+function parseQuestions(text){
   const lines = (text||'').split('\n').map(l=>l.trim()).filter(Boolean);
-  const rounds = Array.from({length:R}, ()=>[]); const errors = []; const bad = [];
-  let cur = -1; const flat = [];
+  const qs = [], errors = [], bad = [];
   for (const l of lines){
-    const m = l.match(/^(?:round|રાઉન્ડ|રાઉંડ)\s*[-:]?\s*(\d+)\s*(?:[-:].*)?$/i);
-    if (m){ cur = +m[1]-1; if (cur<0 || cur>=R){ errors.push('Round '+m[1]+' માન્ય નથી (1 થી '+R+' જ)'); cur=-1; } continue; }
-    if (l.startsWith('#') || l.startsWith('//')) continue;
-    const qa = parseLine(l);
-    if (!qa){ bad.push(l); continue; }
-    if (cur>=0) rounds[cur].push(qa); else flat.push(qa);
+    if (/^(?:phase|ફેઝ|round|રાઉન્ડ)\s*[-:]?\s*\d+/i.test(l) || l.startsWith('#') || l.startsWith('//')) continue;
+    const qa = parseLine(l); if (!qa) bad.push(l); else qs.push(qa);
   }
-  if (flat.length && rounds.every(r=>r.length===0) && flat.length===R*P){ for (let i=0;i<R;i++) rounds[i]=flat.slice(i*P,(i+1)*P); }
-  else if (flat.length){ errors.push('Round ની લાઇન (જેમ કે "Round 1") પહેલાં '+flat.length+' Question છે.'); }
-  if (bad.length) errors.push(bad.length+' લાઇન સમજાઈ નહિ (format Question::Answer): '+bad.slice(0,3).join(' | '));
-  rounds.forEach((r,i)=>{ if (r.length!==P) errors.push('Round '+(i+1)+' માં '+r.length+' Question છે, '+P+' જોઈએ.'); });
-  const seen = {};
-  rounds.forEach((r,i)=>r.forEach(q=>{ const k=q.a.toLowerCase(); if(seen[k]!==undefined) errors.push('જવાબ "'+q.a+'" Round '+(seen[k]+1)+' અને Round '+(i+1)+' બંનેમાં છે (દરેક જવાબ અલગ જોઈએ).'); else seen[k]=i; }));
-  const questions = [].concat(...rounds);
-  return { ok: errors.length===0, errors, questions, counts: rounds.map(r=>r.length) };
+  if (bad.length) errors.push(bad.length+' લાઇન સમજાઈ નહિ (Question::Answer): '+bad.slice(0,3).join(' | '));
+  if (qs.length !== NQ) errors.push('કુલ '+NQ+' પ્રશ્ન જોઈએ, '+qs.length+' મળ્યા.');
+  const seen = {}; qs.forEach((q,i)=>{ const k=q.a.toLowerCase(); if (seen[k]!==undefined) errors.push('જવાબ "'+q.a+'" બે વાર છે (પ્રશ્ન '+(seen[k]+1)+' અને '+(i+1)+').'); else seen[k]=i; });
+  return { ok: errors.length===0, errors, questions: qs };
 }
-function shuffle(a){ const arr=a.slice(); for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
-// Card = 25 answers. From every round we take a FIXED number of answers (Rounds 1-4: 4 each, Rounds 5-7: 3 each),
-// but WHICH answers and WHERE they sit is random for every player. A round never has all 5 answers on a card.
-function makeCard(questions){
-  const P = CFG.perRound, out = [];
-  for (let r=0; r<CFG.rounds; r++){
-    const pool = shuffle(questions.slice(r*P,(r+1)*P).map(q=>q.a));
-    out.push(...pool.slice(0, CFG.cardCounts[r]));
+const makeCard = qs => shuffle(shuffle(qs.map(q=>q.a)).slice(0,25));
+
+const rooms = {};
+const hostSockets = new Set();
+
+// ---------- results (computed once, when the final reveal starts) ----------
+function tilesOf(r, p){
+  const t = Array(25).fill('E');
+  for (const k of Object.keys(p.marks)) {
+    const ci = +k, qi = p.marks[k], q = r.questions[qi]; if (!q) continue;
+    const ok = q.a === p.card[ci], fast = (p.markTs[qi] ?? 1e9) <= r.qSec*1000*FAST_FRAC;
+    t[ci] = ok ? (fast ? 'C' : 'B') : (ci === p.kavach ? 'F' : 'X');
   }
-  return shuffle(out);
+  return t;
 }
-function makeBoxVals(r){ return Array.from({length:CFG.rounds}, ()=>shuffle(RC(r).boxPool)); }
-function randCode(){ const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s='GYAN'; for(let i=0;i<4;i++) s+=c[Math.floor(Math.random()*c.length)]; return s; }
-
-const rooms = {}; // code -> room object
-
-function playerResults(room, pname){
-  const p = room.players[pname];
-  const cellState = Array(25).fill('none');
-  Object.entries(p.marks).forEach(([ci,qi]) => {
-    ci = +ci;
-    cellState[ci] = (room.questions[qi] && room.questions[qi].a === p.card[ci]) ? 'green' : 'red';
-  });
-  const usedAnswers = room.usedIdx.map(i => room.questions[i].a);
-  for (let ci=0; ci<25; ci++) if (cellState[ci]==='none' && usedAnswers.includes(p.card[ci])) cellState[ci]='yellow';
-  const correctRows = LINES.filter(line => line.every(ci=>cellState[ci]==='green')).length;
-  const correctCount = cellState.filter(s=>s==='green').length;
-  const wrongCount = cellState.filter(s=>s==='red').length;
-  const rounds = roundBreakdown(room, p);
-  const netScore = rounds.reduce((a,o)=>a+o.score,0); // FINAL SCORE = correct x2 - wrong x1 + Mystery Box points
-  const boxTotal = rounds.reduce((a,o)=>a+o.box,0);
-  const fullHouse = cellState.every(s=>s==='green');
-  return { cellState, correctRows, correctCount, wrongCount, netScore, boxTotal, rounds, fullHouse };
-}
-// Round wise marks: a click is judged by the round of the question it was made for.
-function roundBreakdown(room, p){
-  const P = CFG.perRound, n = CFG.rounds;
-  const rd = Array.from({length:n}, ()=>({correct:0,wrong:0,box:0,score:0}));
-  Object.entries(p.marks).forEach(([ci,qi])=>{
-    const ri = Math.floor(qi/P); if(!rd[ri]) return;
-    if (room.questions[qi] && room.questions[qi].a === p.card[+ci]) rd[ri].correct++; else rd[ri].wrong++;
-  });
-  rd.forEach((o,ri)=>{
-    const pick = (p.boxPick||[])[ri];
-    const v = (pick!=null && p.boxVals && p.boxVals[ri]) ? p.boxVals[ri][pick] : 0;
-    o.box = v * (ri===n-1 ? RC(room).lastRoundMult : 1);
-    o.score = o.correct*CFG.correctPts - o.wrong*CFG.wrongPts + o.box;
-  });
-  return rd;
-}
-function computeWinners(room){
-  const winners = {};
-  for (const cat of ['line1','line2','line3','line4','line5','full']){
-    let best=null, tied=[];
-    for (const [name,p] of Object.entries(room.players)){
-      if (!p.claims || !p.claims[cat]) continue;
-      const valid = p.claims[cat].valid === true; // judged when the claim was made
-      if (valid){
-        const ts=p.claims[cat].ts;
-        if(!best || ts<best.ts){ best={name,ts}; tied=[name]; }
-        else if(ts===best.ts){ tied.push(name); }
+const isOk = s => s === 'C' || s === 'B';
+function computeResults(r){
+  const P = Object.values(r.players);
+  const zoneN = {}; P.forEach(p => zoneN[p.zone] = (zoneN[p.zone]||0)+1);
+  const R = {}; // key -> result
+  for (const p of P) {
+    const tiles = tilesOf(r, p);
+    const corrQ = new Set(); for (const k of Object.keys(p.marks)) if (isOk(tiles[+k])) corrQ.add(p.marks[k]);
+    const phaseCorr = [0,0,0,0]; corrQ.forEach(qi => phaseCorr[phaseOf(qi)]++);
+    const full = tiles.every(isOk);
+    R[p.key] = { key:p.key, name:p.name, zone:p.zone, avatar:p.avatar, tiles, corrQ, phaseCorr, bd:{}, total:0, open: tiles.filter(s=>s!=='E'&&s!=='X').length,
+      shubh:p.shubh, kavach:p.kavach, full, speedSum:0, speedN:0, dhal:0, baanLanded:0, duels:[], mitra:null };
+    for (const k of Object.keys(p.markTs)) { R[p.key].speedSum += p.markTs[k]; R[p.key].speedN++; }
+  }
+  // yuddh
+  const loss = {}; Object.keys(zoneN).forEach(z => loss[z] = 0);
+  const yTable = [];
+  for (let ph=0; ph<PHASES; ph++) {
+    const ch = r.yuddh[ph] || {}, arrows = {}, shields = {}, byFrom = {};
+    Object.keys(zoneN).forEach(z => { arrows[z]=0; shields[z]=0; byFrom[z]={}; });
+    for (const key of Object.keys(ch)) {
+      const c = ch[key], p = r.players[key]; if (!p) continue;
+      if (c.t === 'dhal') shields[p.zone]++;
+      else if (c.t === 'baan' && arrows[c.z] !== undefined) { arrows[c.z]++; byFrom[c.z][p.zone] = (byFrom[c.z][p.zone]||0)+1; }
+    }
+    const row = {};
+    for (const z of Object.keys(zoneN)) {
+      const net = Math.max(0, arrows[z]-shields[z]);
+      loss[z] += net / zoneN[z] * 20;
+      row[z] = { arrows:arrows[z], shields:shields[z], net, from:byFrom[z] };
+      for (const key of Object.keys(ch)) {
+        const c = ch[key], p = r.players[key]; if (!p) continue;
+        if (c.t === 'baan' && c.z === z && net > 0) { R[key].baanLanded++; R[key].bd.baan = (R[key].bd.baan||0) + PTS.baan; }
+        if (c.t === 'dhal' && p.zone === z && arrows[z] > 0 && net === 0) { R[key].dhal++; R[key].bd.dhal = (R[key].bd.dhal||0) + PTS.dhal; }
       }
     }
-    winners[cat] = best?best.name:null;
-    winners[cat+'_ts'] = best?best.ts:null;
-    winners[cat+'_ms'] = best?Math.max(0,best.ts-(room.startedAt||room.createdAt)):null; // time taken from game start
-    winners[cat+'_tie'] = tied.length>1 ? tied : null; // more than one player claimed validly at the exact same moment
+    yTable.push(row);
   }
-  // Top 3 by Final Score (ties: more correct answers, then fewer wrong, then who joined first)
-  const ranked = Object.entries(room.players).map(([name,p])=>({name,p,res:playerResults(room,name)}))
-    .sort((a,b)=> b.res.netScore-a.res.netScore || b.res.correctCount-a.res.correctCount || a.res.wrongCount-b.res.wrongCount || a.p.joinedAt-b.p.joinedAt);
-  [['top1',0],['top2',1],['top3',2]].forEach(([k,i])=>{ const x=ranked[i]; winners[k]=x?x.name:null; winners[k+'_score']=x?x.res.netScore:null; winners[k+'_correct']=x?x.res.correctCount:null; winners[k+'_wrong']=x?x.res.wrongCount:null; });
-  // Zone winner: zone with the highest AVERAGE net score (ties -> higher total)
-  const zs={};
-  for (const [name,p] of Object.entries(room.players)){
-    const zn=(p.zone||'').trim(); if(!zn) continue;
-    const k=zn.toLowerCase(); const res=playerResults(room,name);
-    if(!zs[k]) zs[k]={zone:zn,count:0,total:0};
-    zs[k].count++; zs[k].total+=res.netScore;
-  }
-  let bz=null;
-  for (const z of Object.values(zs)){ z.avg=z.total/z.count; if(!bz || z.avg>bz.avg || (z.avg===bz.avg && z.total>bz.total)) bz=z; }
-  winners.zone = bz && bz.avg>0 ? bz.zone : null;
-  winners.zone_avg = bz && bz.avg>0 ? Math.round(bz.avg*100)/100 : null;
-  winners.zone_total = bz && bz.avg>0 ? bz.total : null;
-  winners.zone_count = bz && bz.avg>0 ? bz.count : null;
-  return winners;
-}
-function pubPlayer(room,p){
-  const claims = {};
-  for (const [k,c] of Object.entries(p.claims||{})) claims[k] = {ts:(c.shownTs||c.ts), marks:c.marks};
-  const pp = {...p, claims, boxVals: undefined};   // only the box a player has PICKED is revealed to him (boxRes); other boxes stay secret
-  pp.boxRes = (p.boxPick||[]).map((pk,i)=> pk==null?null:(p.boxVals[i][pk]*(i===CFG.rounds-1?RC(room).lastRoundMult:1)));
-  return pp;
-}
-function publicRoom(room){
-  // Until results are revealed, never send correct answers or claim validity to browsers.
-  if (room.status==='revealed') return {...room, cert:undefined, cfg:{...publicCfg(room), boxPool:RC(room).boxPool}};
-  const players = {};
-  for (const [n,p] of Object.entries(room.players)) players[n] = pubPlayer(room,p);
-  return {...room, cert:undefined, cfg:{...publicCfg(room), boxPool:RC(room).boxPool}, questions: room.questions.map(q=>({q:q.q, img:q.img, aud:q.aud})), players};
-}
-// ---- 500-player friendly state: a PLAYER only receives his own data (+ the few winners after the reveal).
-// The HOST receives the full room, but at most about once per second.
-function zoneStatsS(room){
-  const z = {};
-  for (const n of Object.keys(room.players)){
-    const zn = (room.players[n].zone||'—').trim()||'—'; const key = zn.toLowerCase();
-    const res = playerResults(room, n);
-    if(!z[key]) z[key]={zone:zn,count:0,total:0}; z[key].count++; z[key].total+=res.netScore;
-  }
-  return Object.values(z).map(o=>({...o,avg:o.total/o.count})).sort((a,b)=>b.avg-a.avg||b.total-a.total);
-}
-function zoneProgOf(room){ const m={}, q=room.curIdx, live=(room.status==='question'||room.status==='locked'); for(const p of Object.values(room.players||{})){ const z=String((p&&p.zone)||'').trim(); if(!z) continue; const k=z.toLowerCase(); const o=m[k]||(m[k]={z,i:Object.keys(m).length,n:0,a:0,l:0}); o.n++; if(live&&q!=null&&Object.values(p.marks||{}).includes(q)) o.a++; } if(room.zlock) for(const k in m){ const zl=room.zlock[k]; if(zl&&zl.locks) m[k].l=zl.locks.reduce((s,x)=>s+(x?1:0),0); } return Object.values(m).slice(0,40); }
-function slimBase(room){
-  const { clientMap, tokens, cert, players, cfgOvr, ...rest } = room;
-  const n = Object.keys(players).length;
-  if (room.status==='revealed'){
-    const keep = {};
-    for (const [k,v] of Object.entries(room.winners||{})) if (k!=='zone' && typeof v==='string' && players[v]) keep[v]=players[v];
-    return {base:{...rest, cfg:publicCfg(room), nPlayers:n, zoneS:zoneStatsS(room)}, keep};
-  }
-  return {base:{...rest, cfg:publicCfg(room), nPlayers:n, questions: room.questions.map(q=>({q:q.q, img:q.img, aud:q.aud})), zoneProg: zoneProgOf(room)}, keep:{}};
-}
-function zoneListOf(room){ const seen=[],m={}; for(const p of Object.values(room.players||{})){ const k=String((p&&p.zone)||'').trim().toLowerCase(); if(k&&!(k in m)){ m[k]=seen.length; seen.push(k);} } return m; }
-function slimFor(room, S, name){
-  const players = {...S.keep};
-  if (name && room.players[name]) players[name] = room.status==='revealed' ? room.players[name] : pubPlayer(room, room.players[name]);
-  const zi=(S.zi||(S.zi=zoneListOf(room))); const pz=name&&room.players[name]?String(room.players[name].zone||'').trim().toLowerCase():''; return {...S.base, players, zoneIdx:(pz in zi)?zi[pz]:null};
-}
-// Host-only backup: the host's browser keeps the FULL room (with answers) so that if the server
-// sleeps/restarts (Render free tier), the host can restore the game instantly.
-const bkTimers = {};
-function scheduleBackup(code){
-  if (bkTimers[code]) return;
-  bkTimers[code] = setTimeout(()=>{ delete bkTimers[code]; if (rooms[code]) io.to(code+'#h').emit('backup', rooms[code]); }, 4000);
-}
-function broadcast(code){
-  const r = rooms[code]; if(!r) return;
-  io.to(code+'#h').emit('state', publicRoom(r));
-  const ids = io.sockets.adapter.rooms.get(code); if (ids){
-    const S = slimBase(r);
-    for (const id of ids){
-      const sk = io.sockets.sockets.get(id); if(!sk || sk.rooms.has(code+'#h')) continue;
-      sk.emit('state', slimFor(r, S, sk.data && sk.data.code===code ? sk.data.name : null));
+  for (const z of Object.keys(loss)) loss[z] = Math.min(20, loss[z]);
+  // tiles, lines, chinh, full
+  for (const p of P) {
+    const o = R[p.key]; let s = 0;
+    o.tiles.forEach(t => { s += t==='C'?PTS.C : t==='B'?PTS.B : t==='F'?PTS.F : 0; });
+    o.bd.tiles = s;
+    const done = LINES.map(l => l.every(ci => isOk(o.tiles[ci])));
+    o.shubhDone = p.shubh!=null && done[p.shubh];
+    let others = 0; done.forEach((d,i) => { if (d && i !== p.shubh) others++; });
+    o.lines = Math.min(PTS.lineMax, others);
+    if (o.lines) o.bd.lines = o.lines * PTS.line;
+    if (o.shubhDone) o.bd.shubh = PTS.shubh;
+    o.chinh = isOk(o.tiles[r.chinh]);
+    if (o.chinh) o.bd.chinh = PTS.chinh;
+    if (o.full) o.bd.full = PTS.full;
+    if (o.shubhDone) { // when did the shubh line become complete? (question order, then speed of that last tile)
+      let ord = -1, ts = 0;
+      for (const ci of LINES[p.shubh]) { const qi = p.marks[ci], oi = r.usedIdx.indexOf(qi); if (oi > ord || (oi === ord && p.markTs[qi] > ts)) { ord = oi; ts = p.markTs[qi]; } }
+      o.shubhOrd = ord; o.shubhTs = ts;
     }
   }
-  scheduleBackup(code);
-}
-// a player did something small (tap, join, box): tell ONLY him now; the host gets a throttled update
-const hostT = {};
-function touchHost(code){
-  if (hostT[code]) return;
-  hostT[code] = setTimeout(()=>{ delete hostT[code]; if (rooms[code]){ io.to(code+'#h').emit('state', publicRoom(rooms[code])); scheduleBackup(code); } }, 1000);
-}
-function touch(socket, code, name){
-  const r = rooms[code]; if(!r) return;
-  const p = r.players[name]; if(p) socket.emit('me', {name, p: pubPlayer(r,p)});
-  touchHost(code);
+  // duels
+  for (let ph=0; ph<PHASES; ph++) {
+    const d = r.duel[ph] || {};
+    for (const key of Object.keys(d)) {
+      const a = R[key], b = R[d[key]]; if (!a || !b) continue;
+      const res = a.phaseCorr[ph] > b.phaseCorr[ph] ? 'win' : a.phaseCorr[ph] < b.phaseCorr[ph] ? 'loss' : 'tie';
+      a.duels.push({ ph, opp:b.name, res, me:a.phaseCorr[ph], they:b.phaseCorr[ph] });
+      if (res === 'win') a.bd.duel = (a.bd.duel||0) + PTS.duelWin; else if (res === 'tie') a.bd.duel = (a.bd.duel||0) + PTS.duelTie;
+    }
+  }
+  // mitra
+  let bestPair = null;
+  for (const p of P) {
+    const m = r.players[p.mitra]; if (!m) continue;
+    const a = R[p.key], b = R[m.key]; let n = 0; a.corrQ.forEach(q => { if (b.corrQ.has(q)) n++; });
+    a.mitra = { name:m.name, matches:n };
+    if (n) a.bd.mitra = Math.min(PTS.mitraMax, n) * PTS.mitra;
+    if (n && (!bestPair || n > bestPair.n)) bestPair = { a:p.key, b:m.key, n };
+  }
+  for (const k of Object.keys(R)) { const o = R[k]; o.total = Object.values(o.bd).reduce((x,y)=>x+y,0); }
+  // birud
+  const list = Object.values(R);
+  const best = (f, min) => { let b=null; for (const o of list) { const v=f(o); if (v!=null && (b==null || v>b.v) && (min==null || v>=min)) b={o,v}; } return b && b.o; };
+  const taken = new Set(), birud = {};
+  const give = (o, t) => { if (o && !taken.has(o.key)) { taken.add(o.key); birud[o.key] = t; } };
+  give(best(o => o.speedN>=5 ? -o.speedSum/o.speedN : null), 'સૌથી ઝડપી');
+  give(best(o => o.dhal, 1), 'સાચો સેવક');
+  give(best(o => o.baanLanded, 1), 'વીર');
+  give(best(o => o.mitra ? o.mitra.matches : null, 1), 'જોડીનો રાજા');
+  give(best(o => o.speedN, 20), 'છેલ્લે સુધી સાથી');
+  for (const o of list) o.birud = birud[o.key] || 'સંગમ સાથી';
+  // zones
+  const zs = Object.keys(zoneN).map(z => {
+    const m = list.filter(o => o.zone === z), avg = m.reduce((s,o)=>s+o.total,0) / m.length;
+    return { zone:z, n:m.length, avg:+avg.toFixed(2), loss:+loss[z].toFixed(1), score:+(avg*(1-loss[z]/100)).toFixed(2) };
+  }).sort((a,b)=>b.score-a.score);
+  const pl = list.slice().sort((a,b)=>b.total-a.total || b.open-a.open || a.name.localeCompare(b.name));
+  const sh = list.filter(o => o.shubhDone);
+  const pratham = sh.slice().sort((a,b)=>a.shubhOrd-b.shubhOrd || a.shubhTs-b.shubhTs)[0] || null;
+  const shiromani = sh.slice().sort((a,b)=>b.total-a.total)[0] || null;
+  const brief = o => o ? { name:o.name, zone:o.zone, avatar:o.avatar, total:+o.total.toFixed(1) } : null;
+  const win = {
+    z3: zs[2] ? { ...zs[2] } : null, z2: zs[1] ? { ...zs[1] } : null, z1: zs[0] ? { ...zs[0] } : null,
+    p3: brief(pl[2]), p2: brief(pl[1]), p1: brief(pl[0]),
+    chinh: list.filter(o=>o.chinh).map(brief),
+    jodi: bestPair ? { a:brief(R[bestPair.a]), b:brief(R[bestPair.b]), n:bestPair.n } : null,
+    pratham: pratham ? { ...brief(pratham), line:LINE_NAMES[pratham.shubh] } : null,
+    shiromani: shiromani ? brief(shiromani) : null,
+    shubhAll: sh.map(brief)
+  };
+  r.res = { R, zones: zs, win, yTable, loss, chinhCi: r.chinh, mosaic: list.map(o=>o.open).sort((a,b)=>b-a), nShubh: sh.length };
 }
 
-const SEEN = {};   // code|key -> last time that player's browser talked to us (join, tap, resync every 4 s)
-function seen(code,key){ if (key) SEEN[code+'|'+key]=Date.now(); }
-const ONLINE_MS = +process.env.ONLINE_MS || 10000;
-function bindSock(socket, r, code, name){ socket.data = {code, name}; seen(code,name); }
-
-function newPlayerObj(r,name,zone,avatar){ return { card: makeCard(r.questions), boxVals: makeBoxVals(r), boxPick: Array(CFG.rounds).fill(null), baseName: name, zone, avatar: avatar||'🦁', marks:{}, claims:{}, joinedAt: Date.now() }; }
-function newToken(){ return 't'+Date.now().toString(36)+Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,10); }
-function tokFor(r,key){ if(!r.tokens) r.tokens={}; if(!r.tokens[key]) r.tokens[key]=newToken(); return r.tokens[key]; }
-function tokOwner(r,token){ if(!token||!r.tokens) return null; return Object.keys(r.tokens).find(k=>r.tokens[k]===token && r.players[k]) || null; }
-function bindName(socket, r, code, clientId, key, token){
-  // a player is identified ONLY by his secret token (given at join) — never by a browser-wide id, so two people on one phone/browser can never get each other's card
-  const k = (key && r.tokens && r.tokens[key]===token && r.players[key]) ? key : tokOwner(r, token);
-  if (k){ bindSock(socket, r, code, k); return k; }
-  return null;
+// ---------- state (what each screen is allowed to see) ----------
+function remainingNums(r){ const a=[]; for (let i=r.phase*PER;i<(r.phase+1)*PER;i++) if(!r.usedIdx.includes(i)) a.push(i+1); return a; }
+function publicState(r){
+  const P = Object.values(r.players), byZone = {};
+  r.zones.forEach(z => byZone[z] = { n:0, marked:0, picked:0 });
+  const idx = r.curIdx;
+  P.forEach(p => { const z = byZone[p.zone]; if (!z) return; z.n++; if (idx != null && p.markTs[idx] != null) z.marked++; if (r.status==='yuddh' && (r.yuddh[r.phase]||{})[p.key]) z.picked++; });
+  const S = {
+    code:r.code, status:r.status, phase:r.phase, phaseNames:r.phaseNames, zones:r.zones, qSec:r.qSec, nQ:NQ, per:PER,
+    now:Date.now(), timerEnd:r.timerEnd, paused:!!r.paused, pausedMs:r.pausedMs||0,
+    qNo: idx!=null ? idx+1 : null, used:r.usedIdx.length, wheelNums:r.wheelNums||null, spinAt:r.spinAt||0,
+    nPlayers:P.length, byZone, pickEnd:r.pickEnd, yuddhEnd:r.yuddhEnd, step:r.step,
+    pickIn: r.status==='pick' ? P.filter(p=>p.pickedAt).length : 0,
+    yIn: r.status==='yuddh' ? Object.keys(r.yuddh[r.phase]||{}).length : 0
+  };
+  if (r.status==='question' || r.status==='locked') { const q=r.questions[idx]; S.q = q.q; if (q.img) S.qImg = q.img; S.markedNow = P.filter(p=>p.markTs[idx]!=null).length; }
+  if (r.status==='reveal' && r.res) S.reveal = revealView(r);
+  return S;
+}
+function revealView(r){
+  const s = r.step, R = r.res, v = { step:s, steps:STEPS, win:{}, chitra:null };
+  STEPS.forEach((k,i) => { if (i > s) return; if (k==='tiles') return; if (k==='yuddh') v.yuddh = { table:R.yTable, loss:R.loss, zones:r.zones }; else if (k==='chitra') { v.mosaic = R.mosaic; v.nShubh=R.nShubh; v.shubhAll=R.win.shubhAll; } else v.win[k] = R.win[k]; });
+  return v;
+}
+function hostState(r){
+  const S = publicState(r);
+  S.hostName = r.hostName; S.chinh = r.chinh;
+  S.players = Object.values(r.players).map(p => ({ key:p.key, name:p.name, zone:p.zone, avatar:p.avatar, online:p.online!==false, marks:Object.keys(p.marks).length, bot:!!p.bot }));
+  S.questions = r.questions.map(q => ({ q:q.q, a:q.a, img:q.img }));
+  S.botsPlay = !!r.botsPlay;
+  return S;
+}
+function playerState(r, p){
+  const S = publicState(r);
+  S.me = { key:p.key, name:p.name, zone:p.zone, avatar:p.avatar, card:p.card, marks:p.marks, shubh:p.shubh, kavach:p.kavach,
+           yChoice: (r.yuddh[r.phase]||{})[p.key] || null, pickedAt: !!p.pickedAt };
+  S.lineNames = LINE_NAMES;
+  if (r.status==='reveal' && r.res && r.res.R[p.key]) {
+    const o = r.res.R[p.key];
+    S.me.result = { tiles:o.tiles, bd:o.bd, total:+o.total.toFixed(1), birud:o.birud, mitra:o.mitra, duels:o.duels, shubhDone:o.shubhDone, chinhCi:r.chinh, lines:o.lines, full:o.full, shubh:o.shubh, kavach:o.kavach };
+    S.picture = '/chitra/' + r.code;
+  }
+  return S;
+}
+let pending = {};
+function broadcast(code, now){
+  if (now) return doBroadcast(code);
+  if (pending[code]) return; pending[code] = setTimeout(() => { delete pending[code]; doBroadcast(code); }, 120);
+}
+function doBroadcast(code, onlyHost){
+  const r = rooms[code]; if (!r) return;
+  try {
+    const H = hostState(r);
+    io.to(code+':h').emit('state', H);
+    const pub = publicState(r); if (r.status==='lobby') pub.players = Object.values(r.players).map(p=>({name:p.name,zone:p.zone,avatar:p.avatar}));
+    io.to(code+':pj').emit('state', pub);
+    if (onlyHost) return;
+    for (const p of Object.values(r.players)) if (p.sid && !p.bot) io.to(p.sid).emit('state', playerState(r, p));
+  } catch(e){ console.error('broadcast', e && e.stack || e); }
 }
 
-// Players who did not pick a Box in time get a random one (so everyone ends with 7 Boxes)
-function autoPickBoxes(r, round){
-  for (const p of Object.values(r.players)){
-    if (!p.boxPick) p.boxPick = Array(CFG.rounds).fill(null);
-    if (p.boxPick[round]==null) p.boxPick[round] = Math.floor(Math.random()*RC(r).boxPool.length);
+// ---------- game flow ----------
+function pairDuels(r, ph){
+  const P = shuffle(Object.values(r.players)), left = new Set(P.map(p=>p.key)), d = {};
+  for (const a of P) {
+    if (!left.has(a.key)) continue; left.delete(a.key);
+    const cand = P.filter(b => left.has(b.key) && b.zone !== a.zone);
+    if (!cand.length) continue;
+    const b = cand[Math.floor(Math.random()*cand.length)]; left.delete(b.key); d[a.key]=b.key; d[b.key]=a.key;
+  }
+  r.duel[ph] = d;
+}
+function pairMitras(r){
+  const byZ = {}; Object.values(r.players).forEach(p => (byZ[p.zone] = byZ[p.zone] || []).push(p));
+  for (const z of Object.keys(byZ)) {
+    const a = shuffle(byZ[z]);
+    for (let i=0;i+1<a.length;i+=2) { a[i].mitra=a[i+1].key; a[i+1].mitra=a[i].key; }
+    if (a.length%2===1 && a.length>1) { a[a.length-1].mitra = a[0].key; } // odd one out: borrows a friend (one-way)
   }
 }
+function finishPick(r){
+  if (r.status !== 'pick') return;
+  for (const p of Object.values(r.players)) {
+    if (p.shubh == null) p.shubh = Math.floor(Math.random()*12);
+    if (p.kavach == null) p.kavach = Math.floor(Math.random()*25);
+  }
+  pairMitras(r); pairDuels(r, 0);
+  r.status = 'active'; r.phase = 0; r.pickEnd = null; broadcast(r.code, true);
+}
+function startReveal(r, idx){
+  r.status = 'revealing'; r.curIdx = idx; broadcast(r.code, true);
+  setTimeout(() => {
+    if (r.status !== 'revealing' || r.curIdx !== idx) return;
+    r.status = 'question'; r.qOpenAt = Date.now(); r.timerEnd = Date.now() + r.qSec*1000; r.paused = false; r.pausedMs = null;
+    broadcast(r.code, true); botsAnswer(r, idx);
+  }, DEF.revealMs);
+}
+function lockQ(r){
+  if (r.status !== 'question') return;
+  r.status = 'locked'; r.timerEnd = null; r.paused = false; r.pausedMs = null; broadcast(r.code, true);
+}
+function botsAnswer(r, idx){
+  if (!r.botsPlay) return;
+  for (const p of Object.values(r.players)) {
+    if (!p.bot) continue;
+    setTimeout(() => {
+      if (r.status !== 'question' || r.curIdx !== idx) return;
+      const used = new Set(Object.keys(p.marks).map(Number));
+      let ci = p.card.indexOf(r.questions[idx].a); if (ci < 0 || used.has(ci) || Math.random() < 0.25) { const f=[...Array(25).keys()].filter(i=>!used.has(i)); ci = f[Math.floor(Math.random()*f.length)]; }
+      if (ci == null) return; p.marks[ci] = idx; p.markTs[idx] = Date.now() - r.qOpenAt; hostPing(r.code);
+    }, (FAST?50:1500) + Math.random()*(FAST?100:(r.qSec*600)));
+  }
+}
+function botsYuddh(r){
+  if (!r.botsPlay) return;
+  const ch = r.yuddh[r.phase] = r.yuddh[r.phase] || {};
+  for (const p of Object.values(r.players)) if (p.bot) { const o = r.zones.filter(z=>z!==p.zone); ch[p.key] = Math.random()<0.5 || !o.length ? { t:'dhal' } : { t:'baan', z:o[Math.floor(Math.random()*o.length)] }; }
+}
+function startYuddh(r){
+  if (r.status !== 'locked' || remainingNums(r).length) return;
+  r.status = 'yuddh'; r.yuddhEnd = Date.now() + DEF.yuddhSec*1000; r.yuddh[r.phase] = r.yuddh[r.phase] || {};
+  botsYuddh(r); broadcast(r.code, true);
+}
+let _hp = {}; function hostPing(code){ if (_hp[code]) return; _hp[code] = setTimeout(()=>{ delete _hp[code]; const r=rooms[code]; if(!r) return; io.to(code+':h').emit('state', hostState(r)); const pub=publicState(r); io.to(code+':pj').emit('state', pub); }, 400); }
+
 setInterval(() => {
-  for (const code of Object.keys(rooms)){
-    const r = rooms[code];
-    if (r.status==='question' && !r.paused && r.timerEnd && Date.now()>=r.timerEnd){
-      r.status='locked';
-      broadcast(code);
-    }
-    if (r.status==='box' && r.boxEnd && Date.now()>=r.boxEnd && !r.boxAuto){
-      r.boxAuto = true; autoPickBoxes(r, r.round); broadcast(code);
-    }
+  const now = Date.now();
+  for (const r of Object.values(rooms)) {
+    if (r.status==='question' && !r.paused && r.timerEnd && now >= r.timerEnd) lockQ(r);
+    else if (r.status==='pick' && r.pickEnd && now >= r.pickEnd) finishPick(r);
+    else if (r.status==='yuddh' && r.yuddhEnd && now >= r.yuddhEnd) { r.status='yuddhwait'; r.yuddhEnd=null; broadcast(r.code, true); }
   }
-}, 1000);
+}, 250);
+setInterval(() => { const cut = Date.now()-48*3600*1000; for (const c of Object.keys(rooms)) if (rooms[c].createdAt < cut) delete rooms[c]; }, 3600*1000);
 
-// drop event floods from one socket (a stuck/abusive client); normal play is a few events per second
-io.use((socket, next) => next());
-setInterval(() => { const cut = Date.now() - 48*3600*1000; for (const c of Object.keys(rooms)) if ((rooms[c].createdAt||Date.now()) < cut) delete rooms[c]; }, 3600*1000);
-io.on('connection', (socket) => {
+// ---------- sockets ----------
+io.on('connection', socket => {
+  socket.on('time:sync', (x, cb) => { if (typeof cb === 'function') cb(Date.now()); });
   let _n = 0, _t = Date.now();
-  socket.use((pkt, next) => { const now = Date.now(); if (now-_t>1000){ _t=now; _n=0; } if (++_n>60) return; next(); });
-  socket.on('subscribe', ({code, host, clientId, key, token}, cb) => {
-    if (rooms[code]){
-      socket.join(code); if(!host) bindName(socket, rooms[code], code, clientId, key, token);
-      if (host){ socket.join(code+'#h'); scheduleBackup(code); cb && cb({ok:true, room: publicRoom(rooms[code])}); }
-      else { const Sx = slimBase(rooms[code]); cb && cb({ok:true, room: slimFor(rooms[code], Sx, socket.data&&socket.data.code===code?socket.data.name:null)}); }
-    }
-    else cb && cb({ok:false, error:'Room code મળ્યો નહિ.'});
-  });
+  const rate = () => { const n = Date.now(); if (n-_t > 1000) { _t=n; _n=0; } return ++_n > 40; };
+  const roomOf = code => rooms[String(code||'').toUpperCase()];
+  const hostRoom = code => (socket.data.host ? roomOf(code) : null);
 
-  // Players call this every few seconds: re-joins the room after a server restart/restore.
-  socket.on('resync', ({code, clientId, key, token}, cb) => {
-    const r = rooms[code];
-    if (!r){ cb && cb({ok:false}); return; }
-    const mineKey = (key && r.tokens && r.tokens[key]===token && r.players[key]) ? key : tokOwner(r, token);
-    if (socket.rooms.has(code) && socket.data && socket.data.code===code && (!mineKey || socket.data.name===mineKey)) { seen(code,socket.data.name); cb && cb({ok:true}); return; }
-    socket.join(code); bindName(socket, r, code, clientId, key, token); const Sy = slimBase(r); cb && cb({ok:true, room: slimFor(r, Sy, socket.data&&socket.data.code===code?socket.data.name:null)});
-  });
-
-  // Host restores a game from the backup kept in the host's browser (after server sleep/restart).
-  // ---- Host tools: kick / rename / pre-test (test players) ----
-  function socksOf(code){ const ids=io.sockets.adapter.rooms.get(code), out=[]; if(ids) for(const id of ids){ const sk=io.sockets.sockets.get(id); if(sk) out.push(sk); } return out; }
-  function hostRoom(code){ const r=rooms[code]; return r||null; }
-  socket.on('host:kick', ({code,name}, cb) => {
-    const r=hostRoom(code); if(!r||!r.players[name]){ cb&&cb({ok:false}); return; }
-    delete r.players[name]; if(r.tokens) delete r.tokens[name]; if(r.clientMap) for(const c of Object.keys(r.clientMap)) if(r.clientMap[c]===name) delete r.clientMap[c];
-    for(const sk of socksOf(code)) if(sk.data && sk.data.name===name) sk.data={};
-    broadcast(code); cb&&cb({ok:true});
-  });
-  socket.on('host:rename', ({code,name,newName}, cb) => {
-    const r=hostRoom(code); newName=String(newName||'').trim().slice(0,40);
-    if(!r||!r.players[name]||!newName){ cb&&cb({ok:false,error:'નામ ખાલી છે.'}); return; }
-    if(r.status==='revealed'){ cb&&cb({ok:false,error:'Result પછી નામ બદલી શકાતું નથી.'}); return; }
-    if(newName===name){ cb&&cb({ok:true}); return; }
-    if(r.players[newName]){ cb&&cb({ok:false,error:'આ નામ પહેલેથી છે.'}); return; }
-    r.players[newName]=r.players[name]; r.players[newName].baseName=newName; delete r.players[name];
-    if(r.tokens&&r.tokens[name]){ r.tokens[newName]=r.tokens[name]; delete r.tokens[name]; }
-    if(r.clientMap) for(const c of Object.keys(r.clientMap)) if(r.clientMap[c]===name) r.clientMap[c]=newName;
-    if(SEEN[code+'|'+name]){ SEEN[code+'|'+newName]=SEEN[code+'|'+name]; delete SEEN[code+'|'+name]; }
-    for(const sk of socksOf(code)) if(sk.data && sk.data.name===name) sk.data={code,name:newName};
-    broadcast(code); cb&&cb({ok:true});
-  });
-  socket.on('host:addBots', ({code,n}, cb) => {
-    const r=hostRoom(code); if(!r){ cb&&cb({ok:false}); return; }
-    if(r.status!=='lobby'){ cb&&cb({ok:false,error:'Test Players fakt Game શરૂ થતા પહેલાં (Lobby માં) ઉમેરી શકાય.'}); return; }
-    n=Math.max(1,Math.min(1000,Math.round(+n||50)));
-    const zones=['Test-A','Test-B','Test-C','Test-D','Test-E']; let added=0;
-    for(let i=1;i<=n && Object.keys(r.players).length<2000;i++){ let k='Test '+(Object.values(r.players).filter(p=>p.bot).length+1); if(r.players[k]) continue;
-      const pl=newPlayerObj(r,k,zones[i%zones.length],['🦁','🐯','🐼','🐵','🦊'][i%5]); pl.bot=true; r.players[k]=pl; added++; }
-    const t0=Date.now(); const S=slimBase(r); const k0=Object.keys(r.players).find(k=>r.players[k].bot);
-    const hostBytes=JSON.stringify(publicRoom(r)).length, playerBytes=JSON.stringify(slimFor(r,S,k0)).length, ms=Date.now()-t0;
-    broadcast(code);
-    cb&&cb({ok:true, added, total:Object.keys(r.players).length, hostKB:Math.round(hostBytes/1024), playerKB:Math.round(playerBytes/1024), ms});
-  });
-  socket.on('host:botsPlay', ({code,on}, cb) => { const r=hostRoom(code); if(!r){ cb&&cb({ok:false}); return; } r.botsPlay=!!on; cb&&cb({ok:true,on:r.botsPlay}); });
-  socket.on('host:clearBots', ({code}, cb) => {
-    const r=hostRoom(code); if(!r){ cb&&cb({ok:false}); return; }
-    let c=0; for(const k of Object.keys(r.players)) if(r.players[k].bot){ delete r.players[k]; c++; }
-    broadcast(code); cb&&cb({ok:true,removed:c});
-  });
-
-  socket.on('host:setCert', ({code,cert}, cb) => {
-    const r=rooms[code]; if(!r||!cert){ cb&&cb({ok:false}); return; }
-    const t=(x,n)=>String(x==null?'':x).slice(0,n);
-    const c={title:t(cert.title,60),sub:t(cert.sub,60),msg:t(cert.msg,120),event:t(cert.event,100),org:t(cert.org,60),signer:t(cert.signer,60),color:/^#[0-9a-f]{6}$/i.test(cert.color||'')?cert.color:''};
-    if(typeof cert.logo==='string' && /^data:image\/(png|jpeg|webp);base64,/.test(cert.logo) && cert.logo.length<=450000) c.logo=cert.logo;
-    if(typeof cert.signImg==='string' && /^data:image\/(png|jpeg|webp);base64,/.test(cert.signImg) && cert.signImg.length<=250000) c.signImg=cert.signImg;
-    r.cert=c; scheduleBackup(code); cb&&cb({ok:true});
-  });
-  socket.on('cert:get', ({code}, cb) => { const r=rooms[code]; cb&&cb({ok:!!r, cert:(r&&r.cert)||null, revealed:!!r&&r.status==='revealed'}); });
-  // 📶 how many players are really connected right now (players ping us every ~4 s)
-  socket.on('host:online', ({code}, cb) => {
-    const r = rooms[code]; if(!r || typeof cb!=='function') return;
-    const now = Date.now(); let on=0, tot=0; const off=[];
-    for (const k of Object.keys(r.players)){ const p=r.players[k]; if(p.bot) continue; tot++; const t=SEEN[code+'|'+k]||0; if(now-t <= ONLINE_MS+5000) on++; else off.push(k); }
-    cb({ok:true, online:on, total:tot, off:off.slice(0,12)});
-  });
-  socket.on('host:joinTimer', ({code,sec}, cb) => {
-    const r=rooms[code]; if(!r){ cb&&cb({ok:false}); return; }
-    sec=Math.round(+sec); r.joinEnd = (sec>0 && sec<=3600) ? Date.now()+sec*1000 : null; broadcast(code); cb&&cb({ok:true});
-  });
-  socket.on('host:restore', ({room}, cb) => {
-    try{
-      if (!room || typeof room.code!=='string' || !room.players || !Array.isArray(room.questions)){ cb&&cb({ok:false,error:'Backup ખરાબ છે.'}); return; }
-      const code = room.code;
-      if (!rooms[code]){
-        const r = room;
-        // a spin that never completed is cancelled; give the question back to the wheel
-        if (r.status==='spinning' || r.status==='revealing'){
-          r.usedIdx = (r.usedIdx||[]).filter(i=>i!==r.curIdx); r.curIdx=null; r.status='active'; r.timerEnd=null;
-        }
-        if (r.status==='question' && !r.paused && (!r.timerEnd || r.timerEnd<Date.now())) r.status='locked';
-        r.clientMap = r.clientMap || {};
-        rooms[code] = r;
-      }
-      socket.join(code); socket.join(code+'#h');
-      cb && cb({ok:true, code});
-      broadcast(code);
-    }catch(e){ cb && cb({ok:false, error:String(e.message||e)}); }
-  });
-
-  // ---- Pause / Resume the question timer ----
-  socket.on('host:pause', ({code}) => {
-    const r = rooms[code]; if(!r || r.status!=='question' || r.paused) return;
-    r.paused = true; r.pausedMs = Math.max(0, (r.timerEnd||0)-Date.now()); r.timerEnd = null;
-    broadcast(code);
-  });
-  socket.on('host:resume', ({code}) => {
-    const r = rooms[code]; if(!r || !r.paused) return;
-    r.paused = false; r.timerEnd = Date.now() + (r.pausedMs||0); r.pausedMs = null;
-    broadcast(code);
-  });
-
-  // ---- Undo the last spin (only if nobody has claimed since that spin) ----
-  socket.on('host:undoSpin', ({code}, cb) => {
-    const r = rooms[code]; if(!r){ cb&&cb({ok:false}); return; }
-    if (r.curIdx==null || !['question','locked','revealing'].includes(r.status) || !r.usedIdx.includes(r.curIdx)){ cb&&cb({ok:false,error:'Undo કરવા જેવું કોઈ Question નથી.'}); return; }
-    for (const p of Object.values(r.players)){
-      for (const c of Object.values(p.claims||{})){
-        if (c.shownTs>=r.lastSpinAt || c.ts>=r.lastSpinAt){ cb&&cb({ok:false,error:'આ Question પછી કોઈ Player એ Claim કરી દીધી છે, એટલે Undo થઈ શકશે નહિ.'}); return; }
-      }
-    }
-    const idx = r.curIdx;
-    r.usedIdx = r.usedIdx.filter(i=>i!==idx);
-    for (const p of Object.values(r.players)){
-      for (const ci of Object.keys(p.marks)) if (p.marks[ci]===idx) delete p.marks[ci];
-    }
-    r.status='active'; r.curIdx=null; r.timerEnd=null; r.paused=false; r.pausedMs=null;
-    cb && cb({ok:true});
-    broadcast(code);
-  });
-
-  socket.on('host:login', ({id,pw}, cb) => {
-    cb && cb({ok: id===HOST_ID && pw===HOST_PW});
-  });
-
-  socket.on('host:create', ({hostName, maxPlayers, qaText, roundNames, boxPool, lastMult, theme}, cb) => {
-    const code = randCode();
-    const useDefault = !(qaText||'').trim();
-    const parsed = parseRounds(useDefault ? defaultQuestionsText() : qaText);
-    if (!parsed.ok){ cb && cb({ok:false, error:(useDefault?'questions.txt માં ભૂલ:\n':'Questions માં ભૂલ:\n')+parsed.errors.join('\n')}); return; }
-    rooms[code] = {
-      code, hostName, maxPlayers: maxPlayers||null, status:'lobby',
-      questions: parsed.questions, usedIdx:[], curIdx:null, timerEnd:null,
-      round:0, roundsDone:0, boxEnd:null, boxAuto:false,
-      players:{}, winners:null, revealStep:0, createdAt: Date.now(),
-      cfgOvr:{ theme: cleanTheme(theme)||cleanTheme(CFG.theme)||undefined, roundNames: cleanNames(roundNames), boxPool: cleanPool(boxPool)||CFG.boxPool.slice(), lastRoundMult: (+lastMult>=1&&+lastMult<=5)?Math.round(+lastMult):CFG.lastRoundMult }
+  socket.on('host:login', ({ id, pw } = {}, cb) => { const ok = id === HOST_ID && pw === HOST_PW; socket.data.host = ok; cb && cb({ ok }); });
+  socket.on('host:create', (o = {}, cb) => {
+    if (!socket.data.host) return cb && cb({ ok:false, error:'Login કરો' });
+    const parsed = parseQuestions(o.qaText);
+    if (!parsed.ok) return cb && cb({ ok:false, error:parsed.errors.join('\n') });
+    const zones = Array.from(new Set(String(o.zones||'').split(',').map(s=>s.trim().slice(0,14)).filter(Boolean))).slice(0,8);
+    let code; do { code = randCode(); } while (rooms[code]);
+    const pn = Array.from({length:PHASES}, (_,i) => String((o.phaseNames||[])[i]||'').trim().slice(0,30) || DEF.phaseNames[i]);
+    const r = rooms[code] = {
+      code, hostName:String(o.hostName||'Host').slice(0,40), status:'lobby', phase:0, questions:parsed.questions,
+      zones: zones.length>=2 ? zones : DEF.zones, phaseNames:pn, qSec: Math.max(10, Math.min(120, +o.qSec || DEF.qSec)),
+      maxPlayers: +o.maxPlayers > 0 ? +o.maxPlayers : 1000,
+      players:{}, usedIdx:[], curIdx:null, timerEnd:null, step:0, yuddh:[{},{},{},{}], duel:[{},{},{},{}], chinh:Math.floor(Math.random()*25), createdAt:Date.now()
     };
-    socket.join(code);
-    cb && cb({ok:true, code, parseInfo:{count:parsed.questions.length, usedDefault:useDefault}});
-    broadcast(code);
+    socket.join(code+':h'); socket.data.code = code; broadcast(code, true);
+    cb && cb({ ok:true, code, zones:r.zones });
   });
+  socket.on('host:restore', ({ code } = {}, cb) => { const r = hostRoom(code); if (!r) return cb && cb({ ok:false }); socket.join(r.code+':h'); cb && cb({ ok:true, code:r.code }); doBroadcast(r.code, true); });
+  socket.on('pj:join', ({ code } = {}, cb) => { const r = roomOf(code); if (!r) return cb && cb({ ok:false }); socket.join(r.code+':pj'); cb && cb({ ok:true }); const pub=publicState(r); if(r.status==='lobby') pub.players=Object.values(r.players).map(p=>({name:p.name,zone:p.zone,avatar:p.avatar})); socket.emit('state', pub); });
 
-  socket.on('host:start', ({code}) => { const r=rooms[code]; if(!r) return; r.joinEnd=null; if(!r.botsPlay) for(const k of Object.keys(r.players)) if(r.players[k].bot) delete r.players[k]; r.status='active'; if(!r.startedAt) r.startedAt=Date.now(); startRoundIntro(r,code,0); });
+  const H = (name, fn) => socket.on(name, (a = {}, cb) => { const r = hostRoom(a.code); if (!r) return cb && cb({ ok:false }); try { const res = fn(r, a); broadcast(r.code, true); cb && cb(Object.assign({ ok:true }, res||{})); } catch(e){ console.error(name, e); cb && cb({ ok:false }); } });
+  H('host:start', r => { if (r.status !== 'lobby') return; if (Object.keys(r.players).length < 1) throw new Error('no players'); r.status = 'pick'; r.pickEnd = Date.now() + DEF.pickSec*1000;
+    for (const p of Object.values(r.players)) if (p.bot) { p.shubh = Math.floor(Math.random()*12); p.kavach = Math.floor(Math.random()*25); } });
+  H('host:skipPick', r => finishPick(r));
+  H('host:spin', r => {
+    if (r.status !== 'active' && r.status !== 'locked') return;
+    const avail = remainingNums(r); if (!avail.length) return;
+    const idx = avail[Math.floor(Math.random()*avail.length)] - 1;
+    r.wheelNums = avail; r.spinAt = Date.now(); r.status = 'spinning'; r.curIdx = idx; r.usedIdx.push(idx); r.timerEnd = null;
+    setTimeout(() => { if (r.status === 'spinning' && r.curIdx === idx) startReveal(r, idx); }, FAST ? 300 : 9000);
+  });
+  H('host:spinComplete', r => { if (r.status === 'spinning') startReveal(r, r.curIdx); });
+  H('host:skipTimer', r => lockQ(r));
+  H('host:adj', (r, a) => { if (r.status==='question' && r.timerEnd) r.timerEnd = Math.max(Date.now()+2000, r.timerEnd + (+a.delta||0)*1000); });
+  H('host:pause', r => { if (r.status==='question' && !r.paused) { r.paused = true; r.pausedMs = Math.max(0, r.timerEnd - Date.now()); r.timerEnd = null; } });
+  H('host:resume', r => { if (r.status==='question' && r.paused) { r.paused = false; r.timerEnd = Date.now() + (r.pausedMs||0); r.pausedMs = null; } });
+  H('host:startYuddh', r => startYuddh(r));
+  H('host:skipYuddh', r => { if (r.status==='yuddh') { r.status='yuddhwait'; r.yuddhEnd=null; } });
+  H('host:nextPhase', r => {
+    if (r.status !== 'yuddhwait') return;
+    if (r.phase < PHASES-1) { r.phase++; pairDuels(r, r.phase); r.status = 'active'; r.wheelNums = null; }
+    else r.status = 'final';
+  });
+  H('host:final', r => { if (r.status !== 'final') return; computeResults(r); r.status = 'reveal'; r.step = 0; });
+  H('host:next', r => { if (r.status === 'reveal' && r.step < STEPS.length-1) r.step++; });
+  H('host:prev', r => { if (r.status === 'reveal' && r.step > 0) r.step--; });
+  H('host:setQSec', (r, a) => { r.qSec = Math.max(10, Math.min(120, +a.sec||30)); });
+  H('host:setNames', (r, a) => { r.phaseNames = r.phaseNames.map((n,i)=>String((a.names||[])[i]||'').trim().slice(0,30)||n); });
+  H('host:kick', (r, a) => { const p = r.players[a.key]; if (p) { if (p.sid) io.to(p.sid).emit('kicked'); delete r.players[a.key]; } });
+  H('host:addBots', (r, a) => { const n = Math.max(1, Math.min(600, +a.n||10)); for (let i=0;i<n;i++) { const key = 'b'+tok(); const z = r.zones[Math.floor(Math.random()*r.zones.length)];
+      r.players[key] = { key, token:key, name:'Bot '+(Object.keys(r.players).length+1), zone:z, avatar:'🤖', card:makeCard(r.questions), marks:{}, markTs:{}, shubh:null, kavach:null, bot:true, online:true, joinedAt:Date.now() }; } r.botsPlay = true; });
+  H('host:end', r => { delete rooms[r.code]; });
 
-  function startRoundIntro(r,code,round){ r.introFor=round; r.introAt=Date.now(); r.introEnd=Date.now()+(INTRO_SEC+0.6)*1000; broadcast(code); }
-  socket.on('host:setTheme', ({code, theme}, cb) => {
-    const r=hostRoom(code); const t=cleanTheme(theme); if(!r||!t){ cb&&cb({ok:false}); return; }
-    (r.cfgOvr||(r.cfgOvr={})).theme=t; broadcast(code); cb&&cb({ok:true});
+  // ----- players -----
+  function attach(r, p){ p.sid = socket.id; p.online = true; socket.join(r.code); socket.data.pcode = r.code; socket.data.pkey = p.key; }
+  socket.on('player:join', (a = {}, cb) => {
+    const r = roomOf(a.code); if (!r) return cb && cb({ ok:false, error:'Room code ખોટો છે' });
+    if (a.token) { const p = Object.values(r.players).find(x => x.token === a.token); if (p) { attach(r, p); cb && cb({ ok:true, token:p.token }); return doBroadcast(r.code); } }
+    if (r.status !== 'lobby' && r.status !== 'pick') return cb && cb({ ok:false, error:'ગેમ શરૂ થઈ ગઈ છે' });
+    if (Object.keys(r.players).length >= r.maxPlayers) return cb && cb({ ok:false, error:'Room ભરાઈ ગયો છે' });
+    let name = String(a.name||'').trim().slice(0,24); if (!name) return cb && cb({ ok:false, error:'નામ લખો' });
+    const zone = r.zones.includes(a.zone) ? a.zone : null; if (!zone) return cb && cb({ ok:false, error:'Zone પસંદ કરો' });
+    const names = new Set(Object.values(r.players).map(p=>p.name.toLowerCase())); let nm = name, k = 2; while (names.has(nm.toLowerCase())) nm = name+' '+(k++);
+    const key = tok();
+    const p = r.players[key] = { key, token:key, name:nm, zone, avatar:String(a.avatar||'🦁').slice(0,4), card:makeCard(r.questions), marks:{}, markTs:{}, shubh:null, kavach:null, joinedAt:Date.now() };
+    attach(r, p); cb && cb({ ok:true, token:key }); broadcast(r.code);
   });
-  socket.on('host:introDone', ({code}) => { const r=rooms[code]; if(!r||!r.introEnd) return; r.introEnd=0; broadcast(code); });
-  // Host: edit Round names / Mystery Box points (also while the game is running)
-  socket.on('host:setRoundCfg', ({code, roundNames, boxPool, lastMult}, cb) => {
-    const r=hostRoom(code); if(!r){ cb&&cb({ok:false}); return; }
-    const o=r.cfgOvr||(r.cfgOvr={}); if(roundNames) o.roundNames=cleanNames(roundNames);
-    if(lastMult!=null && +lastMult>=1 && +lastMult<=5) o.lastRoundMult=Math.round(+lastMult);
-    if(boxPool){ const bp=cleanPool(boxPool); if(!bp){ cb&&cb({ok:false,error:'Box points 7 hovaa joie (-50 thi 50)'}); return; } o.boxPool=bp;
-      // re-deal values for every round whose boxes nobody has opened yet
-      const from = (r.status==='box') ? r.round+1 : r.round;
-      for(const p of Object.values(r.players)){ if(!p.boxVals) p.boxVals=makeBoxVals(r); for(let rd=from;rd<CFG.rounds;rd++){ if(p.boxPick && p.boxPick[rd]!=null) continue; p.boxVals[rd]=shuffle(bp); } } }
-    broadcast(code); cb&&cb({ok:true});
+  const mine = a => { const r = roomOf(a && a.code); const p = r && r.players[socket.data.pkey]; return (r && p) ? [r, p] : [null, null]; };
+  socket.on('player:pick', (a = {}, cb) => {
+    const [r, p] = mine(a); if (!r || r.status !== 'pick') return cb && cb({ ok:false });
+    if (Number.isInteger(a.shubh) && a.shubh>=0 && a.shubh<12) p.shubh = a.shubh;
+    if (Number.isInteger(a.kavach) && a.kavach>=0 && a.kavach<25) p.kavach = a.kavach;
+    p.pickedAt = p.shubh!=null && p.kavach!=null ? Date.now() : 0;
+    cb && cb({ ok:true, shubh:p.shubh, kavach:p.kavach }); hostPing(r.code);
   });
-  const REVEAL_MS=1600;       // how long the big number popup stays up before the question appears
-  const SPIN_SAFETY_MS=7500;  // safety net only — if host's browser never confirms, auto-advance so the game can't get stuck
-  socket.on('host:spin', ({code}) => {
-    const r = rooms[code]; if(!r) return;
-    if(r.status!=='active' && r.status!=='locked') return; // ignore duplicate/racing spin clicks — fixes skipped questions
-    if(r.introEnd && Date.now()<r.introEnd) return; // Round Intro is playing
-    const avail=[]; for(let i=r.round*CFG.perRound;i<(r.round+1)*CFG.perRound;i++) if(!r.usedIdx.includes(i)) avail.push(i);
-    if (avail.length===0) return; // this round is finished: Host starts the Mystery Box instead
-    const idx = avail[Math.floor(Math.random()*avail.length)];
-    r.status='spinning'; r.curIdx=idx; r.usedIdx=[...r.usedIdx, idx]; r.timerEnd=null; r.paused=false; r.pausedMs=null; r.lastSpinAt=Date.now();
-    broadcast(code);
-    // Safety net only: if the host's own wheel never confirms completion (tab closed, crash, etc.),
-    // reveal anyway after a generous timeout so the game never gets permanently stuck.
-    setTimeout(()=>{
-      const rr=rooms[code]; if(!rr||rr.status!=='spinning'||rr.curIdx!==idx) return;
-      advanceToRevealing(code, idx);
-    }, SPIN_SAFETY_MS);
+  socket.on('player:mark', (a = {}, cb) => {
+    if (rate()) return; const [r, p] = mine(a);
+    if (!r || r.status !== 'question' || r.paused || (r.timerEnd && Date.now() > r.timerEnd + 400)) return cb && cb({ ok:false, marks:p&&p.marks });
+    const ci = a.ci; if (!Number.isInteger(ci) || ci<0 || ci>24) return cb && cb({ ok:false });
+    const qi = r.curIdx;
+    if (p.marks[ci] !== undefined && p.marks[ci] !== qi) return cb && cb({ ok:false, marks:p.marks });
+    if (p.marks[ci] === qi) { delete p.marks[ci]; delete p.markTs[qi]; }
+    else { for (const k of Object.keys(p.marks)) if (p.marks[k] === qi) delete p.marks[k]; p.marks[ci] = qi; p.markTs[qi] = Date.now() - r.qOpenAt; }
+    cb && cb({ ok:true, marks:p.marks }); hostPing(r.code);
   });
-  function advanceToRevealing(code, idx){
-    const r=rooms[code]; if(!r||r.status!=='spinning'||r.curIdx!==idx) return;
-    r.status='revealing'; broadcast(code);
-    setTimeout(()=>{
-      const rr=rooms[code]; if(!rr||rr.status!=='revealing'||rr.curIdx!==idx) return;
-      rr.status='question'; rr.timerEnd=Date.now()+(rr.qSec||30)*1000; broadcast(code);
-    }, REVEAL_MS);
-  }
-  // Host's own wheel tells us exactly when its CSS animation visually finished — no guessing, no drift.
-  socket.on('host:spinComplete', ({code, idx}) => { advanceToRevealing(code, idx); });
-
-  // Host: question timer length (10-60 s) and skip the remaining time
-  socket.on('host:setTimer', ({code, sec}) => {
-    const r = rooms[code]; if(!r) return;
-    sec = Math.round(+sec); if(!(sec>=10 && sec<=60)) return;
-    r.qSec = sec; broadcast(code);
+  socket.on('player:yuddh', (a = {}, cb) => {
+    const [r, p] = mine(a); if (!r || r.status !== 'yuddh') return cb && cb({ ok:false });
+    const ch = r.yuddh[r.phase] = r.yuddh[r.phase] || {};
+    if (a.t === 'dhal') ch[p.key] = { t:'dhal' };
+    else if (a.t === 'baan' && r.zones.includes(a.z) && a.z !== p.zone) ch[p.key] = { t:'baan', z:a.z };
+    else return cb && cb({ ok:false });
+    cb && cb({ ok:true, choice:ch[p.key] }); hostPing(r.code);
   });
-  socket.on('host:skipTimer', ({code}) => {
-    const r = rooms[code]; if(!r || r.status!=='question') return;
-    r.status='locked'; r.paused=false; r.pausedMs=null; r.timerEnd=null; broadcast(code);
-  });
-
-  // ---- Round finished -> Mystery Box (every player picks 1 of 6 boxes; contents stay secret) ----
-  socket.on('host:startBox', ({code}) => {
-    const r = rooms[code]; if(!r || r.status!=='locked') return;
-    const done = r.usedIdx.filter(i=>Math.floor(i/CFG.perRound)===r.round).length;
-    if (done < CFG.perRound) return;
-    r.status='box'; r.roundsDone = r.round+1; r.boxEnd = Date.now()+RC(r).boxSec*1000; r.boxAuto=false;
-    broadcast(code);
-  });
-  // Host: next round (new wheel) — after the LAST round it opens the "Box Opening" screen instead
-  socket.on('host:nextRound', ({code}) => {
-    const r = rooms[code]; if(!r || r.status!=='box') return;
-    autoPickBoxes(r, r.round); r.boxAuto = true;
-    if (r.round >= CFG.rounds-1){ r.status='opening'; r.boxEnd=null; }
-    else { r.round++; r.status='active'; r.curIdx=null; r.timerEnd=null; r.boxEnd=null; r.boxAuto=false; startRoundIntro(r,code,r.round); return; }
-    broadcast(code);
-  });
-  socket.on('player:boxPick', ({code,name,idx}) => {
-    const r = rooms[code]; if(!r || r.status!=='box') return;
-    const p = r.players[name]; if(!p) return;
-    idx = Math.round(+idx); if(!(idx>=0 && idx<CFG.boxPool.length)) return;
-    if (!p.boxPick) p.boxPick = Array(CFG.rounds).fill(null);
-    if (p.boxPick[r.round]!=null) return;       // one pick only, can't change
-    p.boxPick[r.round] = idx; touch(socket,code,name);
-  });
-
-  socket.on('host:end', ({code}) => { const r=rooms[code]; if(!r) return; r.status='ended'; r.paused=false; broadcast(code); });
-
-  // Host's live note shown under every player's Scratch Card message
-  socket.on('host:scNote', ({code, text}, cb) => {
-    const r = rooms[code]; if(!r){ cb&&cb({ok:false}); return; }
-    r.scNote = String(text||'').replace(/[\u0000-\u001f]+/g,' ').trim().slice(0,140);
-    broadcast(code); cb&&cb({ok:true});
-  });
-
-  // Host reveals the Scratch Card to every player
-  socket.on('host:scReveal', ({code, on}, cb) => {
-    const r = rooms[code]; if(!r){ cb&&cb({ok:false}); return; }
-    r.scReveal = !!on; broadcast(code); cb&&cb({ok:true});
-  });
-
-  socket.on('host:reveal', ({code}) => {
-    const r = rooms[code]; if(!r) return;
-    for (let i=0;i<=Math.min(r.round, CFG.rounds-1);i++){ if (i<r.roundsDone) autoPickBoxes(r, i); }
-    r.winners = computeWinners(r); r.status='revealed'; r.revealStep=1;
-    broadcast(code);
-  });
-
-  socket.on('host:nextWinner', ({code}) => {
-    const r = rooms[code]; if(!r) return;
-    r.revealStep = (r.revealStep||0)+1;
-    broadcast(code);
-  });
-
-  socket.on('player:join', ({code,name,zone,avatar,clientId,token}, cb) => {
-    const r = rooms[code]; if(!r){ cb&&cb({ok:false,error:'Room code મળ્યો નહિ.'}); return; }
-    name=(name||'').trim(); zone=(zone||'').trim();
-    if(!name){ cb&&cb({ok:false,error:'નામ લખો.'}); return; }
-    if(!r.clientMap) r.clientMap = {};
-    const norm = x => (x||'').trim().toLowerCase();
-    // 0) the player's own secret token => always his own card (refresh / network drop / reopen)
-    { const tk = tokOwner(r, token);
-      if(tk){
-        if (clientId) r.clientMap[clientId] = tk;
-        socket.join(code); bindSock(socket, r, code, tk);
-        cb && cb({ok:true, room: slimFor(r,slimBase(r),tk), yourKey:tk, resumed:true, token:tokFor(r,tk)});
-        touchHost(code); return;
-      } }
-    // 1) same device + same name + same zone => reconnecting (refresh / network drop): resume own card
-    const mine = clientId && r.clientMap[clientId];
-    if(mine && r.players[mine] && norm(r.players[mine].baseName)===norm(name) && norm(r.players[mine].zone)===norm(zone)){
-      socket.join(code); bindSock(socket, r, code, mine);
-      const S0 = slimBase(r);
-      cb && cb({ok:true, room: slimFor(r,S0,mine), yourKey:mine, resumed:true, token:tokFor(r,mine)});
-      touchHost(code);
-      return;
-    }
-    // 2) another player with the same name AND same zone already exists => ask for a different name
-    const dupKey = Object.keys(r.players).find(k => norm(r.players[k].baseName)===norm(name) && norm(r.players[k].zone)===norm(zone));
-    if(dupKey){
-      // same name + same zone: if that Player is NOT online right now (refresh / closed browser / new phone) it is the same person coming back => resume his card.
-      const last = SEEN[code+'|'+dupKey]||0;
-      if (Date.now()-last > ONLINE_MS){
-        if (clientId) r.clientMap[clientId] = dupKey;
-        socket.join(code); bindSock(socket, r, code, dupKey);
-        cb && cb({ok:true, room: slimFor(r,slimBase(r),dupKey), yourKey:dupKey, resumed:true, token:tokFor(r,dupKey)});
-        touchHost(code); return;
-      }
-      cb&&cb({ok:false, retry:true, error:'⏳ આ નામ + Zone વાળો Player હમણાં Online દેખાય છે. થોડી સેકન્ડમાં આપોઆપ ફરી પ્રયત્ન થશે… (જો બીજો Player હોય તો નામમાં અટક/ઉપનામ ઉમેરો)'}); return;
-    }
-    if (r.maxPlayers && Object.keys(r.players).length>=r.maxPlayers){ cb&&cb({ok:false,error:'Room ભરાઈ ગયો છે.'}); return; }
-    // 3) same name in a different zone is allowed; give it a unique internal key "Name (2)"
-    let key = name;
-    if(r.players[key]){
-      let n=2; while(r.players[`${name} (${n})`]) n++;
-      key = `${name} (${n})`;
-    }
-    r.players[key] = newPlayerObj(r,name,zone,avatar);
-    if(clientId) r.clientMap[clientId] = key;
-    socket.join(code); bindSock(socket, r, code, key);
-    const S1 = slimBase(r);
-    cb && cb({ok:true, room: slimFor(r,S1,key), yourKey:key, token:tokFor(r,key)});
-    touchHost(code);
-  });
-
-  socket.on('player:mark', ({code,name,ci}) => {
-    seen(code,name);
-    const r = rooms[code]; if(!r || r.status!=='question' || r.paused) return;
-    const p = r.players[name]; if(!p) return;
-    const already = Object.values(p.marks).includes(r.curIdx);
-    if (already || p.marks[ci]!==undefined) return;
-    p.marks[ci] = r.curIdx;
-    touch(socket,code,name);
-  });
-
-  socket.on('player:claim', ({code,name,type}) => {
-    const r = rooms[code]; if(!r) return;
-    const p = r.players[name]; if(!p) return;
-    if(!p.claims) p.claims={};
-    if(!/^(line[1-5]|full)$/.test(type)) return;
-    const now = Date.now();
-    const res = playerResults(r, name);       // validity is judged at the moment of the claim
-    const marks = Object.keys(p.marks).length;
-    const put = (key, need) => {
-      const valid = key==='full' ? res.fullHouse : res.correctRows>=need;
-      const old = p.claims[key];
-      if(old && old.valid){ old.marks = marks; return; }   // an earlier valid claim always stays (earliest time wins)
-      // shownTs = time of the player's FIRST click; it never changes, so a player can't tell from the clock
-      // whether an earlier claim was wrong. ts = official time used for winners (only revealed at the end).
-      p.claims[key] = {ts: now, shownTs: old ? (old.shownTs||old.ts) : now, valid, marks};
-    };
-    put(type, type==='full'?null:+type.replace('line',''));
-    // Claiming "N Line" also registers 1..N-1 Line, each judged on its own truth.
-    // So: 1 Line claimed wrongly earlier + 2 Line claimed rightly later => 1 Line also becomes valid (at the later time).
-    if(/^line[2-5]$/.test(type)){
-      const n = +type.replace('line','');
-      for(let k=1;k<n;k++) put('line'+k, k);
-    }
-    touch(socket,code,name);
-  });
+  socket.on('disconnect', () => { const r = rooms[socket.data.pcode]; const p = r && r.players[socket.data.pkey]; if (p && p.sid === socket.id) { p.online = false; hostPing(r.code); } });
 });
 
 const PORT = process.env.PORT || 3000;
-// 🤖 Test bots that really answer (only when the host switched "Bots play" on) — for a full dry-run
-setInterval(()=>{
-  for (const code of Object.keys(rooms)){
-    const r=rooms[code]; if(!r || !r.botsPlay || r.status!=='question' || r.paused || r.curIdx==null) continue;
-    const q=r.questions[r.curIdx]; if(!q) continue; let changed=false;
-    for (const p of Object.values(r.players)){
-      if(!p.bot || !p.card || Object.values(p.marks||{}).includes(r.curIdx)) continue;
-      if(Math.random()>0.25) continue;
-      const free=[]; for(let i=0;i<25;i++) if(p.marks[i]===undefined) free.push(i);
-      if(!free.length) continue;
-      const right=p.card.indexOf(q.a); let ci;
-      if(right>=0 && p.marks[right]===undefined && Math.random()<0.7) ci=right; else { if(Math.random()<0.2) continue; ci=free[Math.floor(Math.random()*free.length)]; }
-      p.marks[ci]=r.curIdx; if(p.markTs) p.markTs[r.curIdx]=Date.now(); changed=true;
-    }
-    if(changed && (!r._bb || Date.now()-r._bb>2000)){ r._bb=Date.now(); broadcast(code); }
-  }
-}, 1000);
-
-server.listen(PORT, () => console.log('Gyan Shodh Quiz server running on port '+PORT));
+server.listen(PORT, () => console.log('The Sangam running on port ' + PORT));

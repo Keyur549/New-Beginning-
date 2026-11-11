@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+<defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6D28D9"/><stop offset="1" stop-color="#2E1065"/></linearGradient>
+<linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#F59E0B"/></linearGradient></defs>
+<circle cx="100" cy="100" r="94" fill="url(#b)"/><circle cx="100" cy="100" r="82" fill="url(#a)"/>
+<path d="M30 120 Q65 80 100 120 T170 120" fill="none" stroke="#FDE68A" stroke-width="6" stroke-linecap="round"/>
+<path d="M30 140 Q65 100 100 140 T170 140" fill="none" stroke="#F97316" stroke-width="5" stroke-linecap="round" opacity=".9"/>
+<text x="100" y="82" text-anchor="middle" font-size="42" font-weight="800" fill="#FFF3D6" font-family="serif">સંગમ</text>
+<text x="100" y="168" text-anchor="middle" font-size="14" font-weight="700" fill="#FDE68A" font-family="sans-serif" letter-spacing="2">THE SANGAM</text>
+</svg>

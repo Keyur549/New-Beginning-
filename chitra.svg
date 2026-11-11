@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset=".38" stop-color="#F59E0B"/><stop offset=".55" stop-color="#EC4899"/><stop offset=".56" stop-color="#6D28D9"/><stop offset="1" stop-color="#2E1065"/></linearGradient>
+<radialGradient id="g" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFF7D6"/><stop offset="1" stop-color="#FDE68A"/></radialGradient></defs>
+<rect width="500" height="500" fill="url(#s)"/>
+<circle cx="250" cy="190" r="70" fill="url(#g)"/>
+<path d="M0 275 Q120 215 230 275 T500 262 V280 H0z" fill="#4C1D95" opacity=".85"/>
+<g fill="#FDE68A"><path d="M250 320 q-26 -44 0 -80 q26 36 0 80z"/><path d="M210 336 q-28 -30 -4 -66 q34 18 4 66z" opacity=".9"/><path d="M290 336 q28 -30 4 -66 q-34 18 -4 66z" opacity=".9"/></g>
+<g stroke="#FDE68A" stroke-width="3" opacity=".5" fill="none"><path d="M120 360 h260"/><path d="M160 385 h180"/><path d="M200 410 h100"/></g>
+<text x="250" y="470" text-anchor="middle" font-size="30" font-weight="700" fill="#FFF3D6" font-family="sans-serif">ધ સંગમ</text>
+</svg>

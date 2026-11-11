@@ -1,13 +1,9 @@
 {
-  "name": "gyan-shodh-quiz",
+  "name": "the-sangam",
   "version": "1.0.0",
-  "description": "Gyan Shodh - Lucky Card Quiz Championship (standalone real-time backend)",
+  "description": "ધ સંગમ — Gujarati real-time quiz-bingo",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "express": "^4.19.2",
-    "socket.io": "^4.7.5"
-  }
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" },
+  "dependencies": { "express": "^4.19.2", "socket.io": "^4.7.5" }
 }
