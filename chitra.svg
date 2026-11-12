@@ -1,10 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
-<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset=".38" stop-color="#F59E0B"/><stop offset=".55" stop-color="#EC4899"/><stop offset=".56" stop-color="#6D28D9"/><stop offset="1" stop-color="#2E1065"/></linearGradient>
-<radialGradient id="g" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFF7D6"/><stop offset="1" stop-color="#FDE68A"/></radialGradient></defs>
-<rect width="500" height="500" fill="url(#s)"/>
-<circle cx="250" cy="190" r="70" fill="url(#g)"/>
-<path d="M0 275 Q120 215 230 275 T500 262 V280 H0z" fill="#4C1D95" opacity=".85"/>
-<g fill="#FDE68A"><path d="M250 320 q-26 -44 0 -80 q26 36 0 80z"/><path d="M210 336 q-28 -30 -4 -66 q34 18 4 66z" opacity=".9"/><path d="M290 336 q28 -30 4 -66 q-34 18 -4 66z" opacity=".9"/></g>
-<g stroke="#FDE68A" stroke-width="3" opacity=".5" fill="none"><path d="M120 360 h260"/><path d="M160 385 h180"/><path d="M200 410 h100"/></g>
-<text x="250" y="470" text-anchor="middle" font-size="30" font-weight="700" fill="#FFF3D6" font-family="sans-serif">ધ સંગમ</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+<defs>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b1055"/><stop offset=".45" stop-color="#c2410c"/><stop offset=".75" stop-color="#fbbf24"/><stop offset="1" stop-color="#fde68a"/></linearGradient>
+<linearGradient id="st" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff1d0"/><stop offset="1" stop-color="#e0b070"/></linearGradient>
+<linearGradient id="gd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fde047"/><stop offset="1" stop-color="#b45309"/></linearGradient>
+<radialGradient id="sun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff7d6"/><stop offset=".5" stop-color="#fde68a" stop-opacity=".8"/><stop offset="1" stop-color="#fde68a" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="500" height="500" fill="url(#sky)"/>
+<circle cx="250" cy="250" r="190" fill="url(#sun)"/>
+<g fill="#fff" opacity=".8"><circle cx="60" cy="60" r="1.6"/><circle cx="130" cy="30" r="1.2"/><circle cx="420" cy="50" r="1.6"/><circle cx="370" cy="95" r="1.2"/><circle cx="90" cy="120" r="1.2"/><circle cx="455" cy="130" r="1.4"/></g>
+<path d="M0 400 Q120 360 250 385 T500 380 V500 H0Z" fill="#7c2d12" opacity=".55"/>
+<!-- plinth steps -->
+<rect x="70" y="440" width="360" height="26" fill="#d9a35f"/><rect x="95" y="418" width="310" height="24" fill="#e6b676"/><rect x="120" y="398" width="260" height="22" fill="url(#st)"/>
+<!-- sanctum -->
+<rect x="170" y="300" width="160" height="100" fill="url(#st)" stroke="#b9823f" stroke-width="2"/>
+<rect x="150" y="296" width="200" height="10" fill="#c58f4a"/>
+<path d="M225 400 V345 Q250 318 275 345 V400Z" fill="#4a1d0c"/><circle cx="250" cy="372" r="7" fill="#fbbf24"/>
+<g fill="#c58f4a"><rect x="178" y="312" width="12" height="82"/><rect x="310" y="312" width="12" height="82"/></g>
+<!-- shikhar tiers -->
+<path d="M160 296 L250 205 L340 296Z" fill="url(#st)" stroke="#b9823f" stroke-width="2"/>
+<path d="M185 270 L250 190 L315 270Z" fill="#f4d19a" stroke="#b9823f" stroke-width="2"/>
+<path d="M210 244 L250 168 L290 244Z" fill="url(#st)" stroke="#b9823f" stroke-width="2"/>
+<path d="M229 214 L250 148 L271 214Z" fill="#f4d19a" stroke="#b9823f" stroke-width="2"/>
+<g stroke="#b9823f" stroke-width="1.4" opacity=".7"><path d="M170 285 H330"/><path d="M196 258 H304"/><path d="M219 230 H281"/></g>
+<!-- kalash and flag -->
+<ellipse cx="250" cy="143" rx="14" ry="10" fill="url(#gd)"/><rect x="246" y="118" width="8" height="26" fill="url(#gd)"/><circle cx="250" cy="114" r="5" fill="#fde047"/>
+<line x1="250" y1="112" x2="250" y2="62" stroke="#7c2d12" stroke-width="3"/><path d="M252 64 L300 78 L252 94Z" fill="#dc2626"/>
+<!-- diyas -->
+<g fill="#fde047"><ellipse cx="150" cy="432" rx="9" ry="5"/><ellipse cx="350" cy="432" rx="9" ry="5"/></g>
+<g fill="#f97316"><path d="M150 427 q-5 -9 0 -15 q5 6 0 15z"/><path d="M350 427 q-5 -9 0 -15 q5 6 0 15z"/></g>
 </svg>

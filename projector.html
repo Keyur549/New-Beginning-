@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="gu" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projector — ધ સંગમ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Cinzel:wght@600;700&family=Noto+Serif+Gujarati:wght@600;800&family=Hind+Vadodara:wght@400;600;700&family=Baloo+Bhai+2:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ac:#FDE68A;--gd:#F59E0B;--glass:rgba(255,255,255,.14);--edge:rgba(255,255,255,.35);--ink:#fff;--mu:rgba(255,255,255,.8)}
+*{box-sizing:border-box}html{font-size:clamp(12px,2.15vh,26px)}
+body{margin:0;min-height:100vh;color:#fff;font-family:'Hind Vadodara','Noto Serif Gujarati',system-ui,sans-serif;overflow:hidden;background:radial-gradient(1200px 700px at 50% -10%,var(--pl,#F59E0B),var(--pd,#2E1065) 60%,#0d0a1c) fixed}
+#app{position:relative;z-index:1;min-height:100vh;padding:2.2vh 3.4vw;display:flex;flex-direction:column;gap:2vh}
+.top{display:flex;align-items:center;gap:1.2rem}
+.brand{display:flex;align-items:center;gap:.7rem;font-family:'Cinzel','Noto Serif Gujarati',serif;font-weight:700;letter-spacing:.2em;color:var(--ac);font-size:1.05rem;text-shadow:0 0 14px rgba(253,224,71,.5)}
+.brand img{width:2.8rem;height:2.8rem;border-radius:50%;box-shadow:0 0 0 2px var(--edge),0 0 22px rgba(253,224,71,.4)}
+.chips{margin-left:auto;display:flex;gap:.6rem;flex-wrap:wrap;justify-content:flex-end}
+.chip{background:var(--glass);border:1px solid var(--edge);border-radius:99px;padding:.25rem 1.1rem;font-weight:700;font-size:1rem;color:#fff;backdrop-filter:blur(6px)}
+.chip b{color:var(--ac);font-family:'Baloo Bhai 2',sans-serif;font-size:1.25em}
+.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.2vh;text-align:center;min-height:0}
+.kick{font-family:'Cinzel','Noto Serif Gujarati',serif;letter-spacing:.22em;color:var(--ac);font-weight:700;font-size:1.15rem;text-shadow:0 0 18px rgba(253,224,71,.55)}
+.h1{font-family:'Noto Serif Gujarati','Playfair Display',serif;font-weight:800;line-height:1.2;font-size:clamp(2.2rem,min(6.2vw,9.5vh),6.4rem);background:linear-gradient(180deg,#FFF3D6 0%,#FFF3D6 52%,var(--ac) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 18px rgba(0,0,0,.35))}
+.h2{font-size:1.5rem;color:var(--mu);font-weight:600}
+.glass{background:var(--glass);border:1px solid var(--edge);border-radius:1.4rem;backdrop-filter:blur(8px);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.ring{position:relative;width:5.6rem;height:5.6rem;flex:none}.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:7;stroke-linecap:round}.ring .bgc{stroke:rgba(255,255,255,.14)}.ring .fg{stroke:var(--gd);transition:stroke-dashoffset .25s linear;filter:drop-shadow(0 0 6px var(--gd))}
+.ring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Baloo Bhai 2',sans-serif;font-size:2.3rem;color:#fff}
+.zg{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:1.1vw;width:100%;max-width:92vw}
+.zc{padding:1rem 1rem .9rem;display:flex;flex-direction:column;gap:.6rem}
+.zc .nm{display:flex;justify-content:space-between;align-items:center;font-family:'Cinzel','Noto Serif Gujarati',serif;font-weight:700;font-size:1.35rem;letter-spacing:.08em}
+.dot{width:.9rem;height:.9rem;border-radius:50%;box-shadow:0 0 12px currentColor}
+.fort{position:relative;height:6.4rem;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;overflow:hidden;border-radius:.9rem;background:rgba(0,0,0,.28);padding-bottom:.4rem}
+.fort i{display:block;height:.62rem;border-radius:3px;box-shadow:0 0 10px rgba(255,255,255,.12)}.fort .tri{width:1.7rem;height:1.2rem;background:var(--ac);clip-path:polygon(50% 0,100% 100%,0 100%);margin-bottom:2px}
+.fog{position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,6,47,.9),rgba(18,6,47,.45));display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--mu);backdrop-filter:blur(2px)}
+.bar{height:.55rem;border-radius:99px;background:rgba(0,0,0,.32);overflow:hidden}.bar>div{height:100%;border-radius:99px;transition:width .5s}
+.row{display:flex;justify-content:space-between;font-size:.92rem;color:var(--mu)}.row b{color:#fff}
+.qtxt{font-family:'Noto Serif Gujarati','Playfair Display',serif;font-weight:800;line-height:1.25;font-size:clamp(2rem,min(5.4vw,8.5vh),5.8rem);max-width:88vw;text-shadow:0 4px 24px rgba(0,0,0,.45)}
+.qimg{max-height:24vh;border-radius:1rem;border:2px solid var(--edge)}
+.pips{display:flex;gap:.55rem;justify-content:center}.pips i{width:1.4rem;height:1.4rem;border-radius:50%;border:2px solid var(--edge)}.pips i.on{background:var(--ac);box-shadow:0 0 14px var(--ac);border-color:var(--ac)}
+/* wheel */
+.wheel{margin-top:1.8rem;position:relative;width:min(62vh,78vw);aspect-ratio:1;filter:drop-shadow(0 18px 40px rgba(0,0,0,.55))}.wheel svg{width:100%;height:100%;overflow:visible}
+.ptr{position:absolute;top:-1.2rem;left:50%;transform:translateX(-50%);z-index:3;width:0;height:0;border-left:1.2rem solid transparent;border-right:1.2rem solid transparent;border-top:2.6rem solid var(--ac);filter:drop-shadow(0 4px 8px rgba(0,0,0,.6))}
+.numbadge{font-family:'Baloo Bhai 2',sans-serif;font-weight:800;font-size:clamp(4rem,16vh,10rem);line-height:1;color:var(--ac);text-shadow:0 0 40px rgba(253,224,71,.8)}
+/* winners */
+.grand{position:relative;padding:2.2rem 3rem;min-width:min(70vw,46rem);animation:glow 1.7s ease-in-out infinite alternate,pop .7s cubic-bezier(.2,1.4,.4,1)}
+@keyframes glow{from{box-shadow:0 0 0 2px var(--edge),0 0 24px rgba(253,224,71,.25)}to{box-shadow:0 0 0 3px var(--ac),0 0 70px rgba(253,224,71,.8)}}
+@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+.grand .cat{font-family:'Cinzel','Noto Serif Gujarati',serif;font-weight:700;letter-spacing:.14em;color:var(--ac);font-size:1.5rem}
+.grand .av{font-size:clamp(3.5rem,14vh,8rem);line-height:1.1}
+.grand .nm{font-family:'Noto Serif Gujarati','Playfair Display',serif;font-weight:800;font-size:clamp(2.2rem,min(6vw,10vh),5.6rem);line-height:1.15;background:linear-gradient(180deg,#FFF3D6,#FFF3D6 45%,var(--ac));-webkit-background-clip:text;background-clip:text;color:transparent}
+.grand .sc{font-family:'Baloo Bhai 2',sans-serif;font-weight:800;font-size:clamp(2rem,7vh,4.5rem);color:var(--ac);text-shadow:0 0 26px rgba(253,224,71,.6)}
+.strip{display:flex;gap:.7rem;flex-wrap:wrap;justify-content:center}.strip>div{padding:.3rem 1rem;border-radius:99px;background:var(--glass);border:1px solid var(--edge);font-size:1.05rem}
+.names{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;max-width:80vw}.names span{padding:.3rem .9rem;border-radius:99px;background:var(--glass);border:1px solid var(--edge);font-size:1.1rem}
+.conf{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}.conf i{position:absolute;top:-6vh;width:.7rem;height:1.2rem;border-radius:2px;animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(112vh) rotate(var(--r,540deg))}}
+.frame{position:relative;padding:.9rem;border-radius:1.2rem;background:linear-gradient(135deg,#FDE68A,#B45309 55%,#FDE68A);box-shadow:0 0 60px rgba(253,224,71,.45),0 20px 50px rgba(0,0,0,.6)}
+.mos{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;width:min(58vh,80vw);background:#000;border-radius:.5rem;overflow:hidden}.mos div{aspect-ratio:1;background-size:500% 500%;transition:opacity 1s,filter 1s}
+.qr{background:#fff;border-radius:1.2rem;padding:.8rem;box-shadow:0 0 0 3px var(--ac),0 0 50px rgba(253,224,71,.4)}.qr svg{display:block;width:min(34vh,34vw);height:min(34vh,34vw)}
+.code{font-family:'Cinzel',serif;font-weight:700;font-size:clamp(2.6rem,min(7vw,11vh),6rem);letter-spacing:.2em;color:var(--ac);text-shadow:0 0 30px rgba(253,224,71,.55)}
+.big{font-family:'Baloo Bhai 2',sans-serif;font-weight:800;font-size:3rem;color:var(--ac)}
+#fs{position:fixed;right:.8rem;bottom:.8rem;z-index:9;border:1px solid var(--edge);background:var(--glass);color:#fff;border-radius:99px;padding:.35rem .9rem;font:inherit;cursor:pointer;opacity:.5}#fs:hover{opacity:1}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+<style id="up-splash">#lsplash{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 50% 46%,var(--tdeep,#2E1065) 0%,var(--tdk,#170B3B) 55%,#05030d 100%);animation:lsIn .6s ease both;font-family:var(--fb,system-ui)}
+#lsplash.out{animation:lsOut .9s ease both}
+@keyframes lsIn{from{opacity:0}to{opacity:1}}@keyframes lsOut{to{opacity:0;transform:scale(1.06)}}
+#lsplash .ls-rays{position:absolute;left:50%;top:46%;width:240vmax;height:240vmax;margin:-120vmax 0 0 -120vmax;background:repeating-conic-gradient(from 0deg,rgba(var(--srg,245,158,11),.2) 0 4deg,transparent 4deg 14deg);-webkit-mask:radial-gradient(circle,#000 0%,transparent 34%);mask:radial-gradient(circle,#000 0%,transparent 34%);animation:riSpin 60s linear infinite;opacity:0;animation:riSpin 60s linear infinite,lsRay 2s .8s ease forwards}
+@keyframes lsRay{to{opacity:1}}
+#lsplash .ls-glow{position:absolute;left:50%;top:46%;width:80vmin;height:80vmin;margin:-40vmin 0 0 -40vmin;border-radius:50%;background:radial-gradient(circle,rgba(var(--srg,245,158,11),.55),transparent 65%);opacity:0;animation:lsGlow 3.2s .7s ease-in-out infinite}
+@keyframes lsGlow{0%{opacity:0;transform:scale(.6)}35%{opacity:1}100%{opacity:.55;transform:scale(1.08)}}
+#lsplash s{position:absolute;bottom:-12px;width:7px;height:7px;border-radius:50%;background:var(--tl1,#FDE68A);box-shadow:0 0 12px 3px rgba(var(--srg,245,158,11),.9);opacity:0;animation:riUp var(--t) linear infinite;animation-delay:var(--d)}
+#lsplash .ls-in{position:relative;z-index:2;text-align:center;display:flex;flex-direction:column;align-items:center;padding:0 5vw}
+#lsplash .ls-logo{position:relative;width:min(62vmin,420px);aspect-ratio:1;opacity:0;animation:lsLogo 1.6s .9s cubic-bezier(.2,.9,.2,1) forwards}
+#lsplash .ls-logo img{width:100%;height:100%;display:block;filter:drop-shadow(0 18px 40px rgba(0,0,0,.7)) drop-shadow(0 0 34px rgba(var(--srg,245,158,11),.55))}
+#lsplash .ls-logo:after{content:"";position:absolute;inset:3%;border-radius:50%;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.75) 50%,transparent 62%);background-size:260% 100%;background-position:130% 0;mix-blend-mode:overlay;animation:lsShine 1.5s 2.3s ease-in-out both}
+@keyframes lsLogo{0%{opacity:0;transform:scale(.55) rotateY(-70deg);filter:blur(14px)}60%{opacity:1;filter:blur(0)}100%{opacity:1;transform:scale(1) rotateY(0);filter:blur(0)}}
+@keyframes lsShine{to{background-position:-60% 0}}
+#lsplash .ls-t{margin-top:min(4vmin,26px);font-family:var(--fn,'Baloo Bhai 2',sans-serif);font-weight:800;letter-spacing:.55em;margin-right:-.55em;font-size:clamp(.95rem,3.6vmin,1.7rem);color:var(--tl1,#FDE68A);text-shadow:0 0 18px rgba(var(--srg,245,158,11),.8);opacity:0;animation:lsUp .9s 2.7s ease both}
+#lsplash .ls-w{margin-top:min(3vmin,18px);font-family:var(--fh,'Rasa',serif);font-weight:700;font-size:clamp(1.1rem,4vmin,1.8rem);color:#fff;opacity:0;animation:lsUp .9s 3.5s ease both;max-width:90vw;overflow-wrap:anywhere}
+#lsplash .ls-d{display:flex;gap:10px;justify-content:center;margin-top:min(3vmin,20px);opacity:0;animation:lsUp .6s 4.2s ease both}
+#lsplash .ls-d i{width:9px;height:9px;border-radius:50%;background:var(--ts,#F59E0B);animation:lsDot 1s infinite}#lsplash .ls-d i:nth-child(2){animation-delay:.2s}#lsplash .ls-d i:nth-child(3){animation-delay:.4s}
+@keyframes lsDot{50%{transform:translateY(-7px);opacity:.4}}
+@keyframes lsUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+#lsplash .ls-bar{position:absolute;left:0;right:0;height:9vh;background:#000;z-index:3;transform:scaleY(1);animation:lsBar 1.4s .2s ease both}
+#lsplash .ls-bar.t{top:0;transform-origin:top}#lsplash .ls-bar.b{bottom:0;transform-origin:bottom}
+@keyframes lsBar{from{height:50vh}to{height:9vh}}
+#lsplash .ls-skip{position:absolute;right:16px;bottom:calc(12vh + env(safe-area-inset-bottom,0px));z-index:4;font-size:.75rem;letter-spacing:.2em;color:rgba(255,255,255,.55);opacity:0;animation:lsUp .6s 2s ease both}</style>
+<script>(function(){
+ function h2r(h){h=String(h).replace('#','');if(h.length===3)h=h.replace(/./g,'$&$&');var n=parseInt(h,16);return[n>>16&255,n>>8&255,n&255]}
+ function r2h(a){return'#'+a.map(function(v){v=Math.max(0,Math.min(255,Math.round(v)));return(v<16?'0':'')+v.toString(16)}).join('')}
+ function mix(a,b,t){var x=h2r(a),y=h2r(b);return r2h([0,1,2].map(function(i){return x[i]+(y[i]-x[i])*t}))}
+ function toHsl(h){var c=h2r(h),r=c[0]/255,g=c[1]/255,b=c[2]/255,M=Math.max(r,g,b),m=Math.min(r,g,b),l=(M+m)/2,s=0,H=0;
+  if(M!==m){var d=M-m;s=l>.5?d/(2-M-m):d/(M+m);H=M===r?(g-b)/d+(g<b?6:0):M===g?(b-r)/d+2:(r-g)/d+4;H*=60}return[H,s,l]}
+ function fromHsl(H,s,l){H=((H%360)+360)%360;function f(n){var k=(n+H/30)%12,a=s*Math.min(l,1-l);return l-a*Math.max(-1,Math.min(k-3,9-k,1))}return r2h([f(0)*255,f(8)*255,f(4)*255])}
+ function hue(h,d){var x=toHsl(h);return fromHsl(x[0]+d,x[1],x[2])}
+ function lit(h,t){return mix(h,'#ffffff',t)}function drk(h,t){return mix(h,'#000000',t)}
+ var RAINBOW={wheel:[['#FF6B6B','#C62828'],['#FFB74D','#E65100'],['#FFEE58','#F9A825'],['#66BB6A','#2E7D32'],['#26C6DA','#00838F'],['#AB47BC','#6A1B9A'],['#FF8A65','#D84315']],
+  box:[['#E53935','#FF8A65'],['#7E57C2','#B39DDB'],['#00ACC1','#4DD0E1'],['#43A047','#9CCC65'],['#FB8C00','#FFD54F'],['#8E24AA','#CE93D8'],['#F4511E','#FFB74D']],
+  intro:[['#E53935','#FFB74D'],['#7E57C2','#FFD54F'],['#00ACC1','#9CCC65'],['#43A047','#FFEB3B'],['#FB8C00','#E53935'],['#8E24AA','#FFB74D'],['#F9A825','#7E57C2']],
+  conf:['#FFF3D6','#F59E0B','#6D28D9','#ffffff','#E53935','#43A047','#00ACC1']};
+ var PRESETS={
+  fun:{n:'🎉 Fun Premium',p:'#6D28D9',s:'#F59E0B',bg:'#FFF3D6',rainbow:1},
+  navy:{n:'👑 Royal Navy & Gold',p:'#1F3A7A',s:'#D4A437',bg:'#F6EEDA'},
+  emerald:{n:'🌿 Emerald & Gold',p:'#0F766E',s:'#F59E0B',bg:'#E8F7F0'},
+  sunset:{n:'🔥 Sunset Orange',p:'#C2410C',s:'#EAB308',bg:'#FFF4E5'},
+  royal:{n:'🍇 Royal Purple',p:'#5B21B6',s:'#F59E0B',bg:'#F3EEFF'},
+  ocean:{n:'🌊 Ocean Teal',p:'#0E7490',s:'#F97316',bg:'#E7F6F8'}
+ };
+ function derive(t){
+  t=t||PRESETS.fun; var p=t.p||'#6D28D9',s=t.s||'#F59E0B',bg=t.bg||'#FFF3D6';
+  var D={p:p,s:s,bg:bg,pd:drk(p,.2),deep:drk(p,.62),dk:drk(p,.82),dk2:drk(p,.9),s2:hue(s,-14),l1:lit(s,.45),l2:lit(hue(s,-12),.4),l3:lit(p,.55),card:mix(bg,'#ffffff',.65)};
+  D.muted=mix(D.deep,bg,.42);D.line=mix(p,bg,.18);D.cream=mix(bg,'#ffffff',.35);
+  if(t.rainbow||t.id==='fun'){D.pal=RAINBOW;}
+  else{var base=[p,s,hue(p,28),hue(s,-24),hue(p,-28),mix(p,s,.5),hue(s,26)];
+   D.pal={wheel:base.map(function(c){return[lit(c,.2),drk(c,.22)]}),box:base.map(function(c){return[c,lit(c,.38)]}),intro:base.map(function(c,i){return[c,i%2?lit(s,.3):lit(c,.45)]}),conf:[D.cream,s,p,'#ffffff',D.l1,D.l3,hue(s,20)]};}
+  return D;}
+ var cur=null,curKey='';
+ function css(D){
+  var rg=h2r(D.p).join(','),sr=h2r(D.s).join(','),dr=h2r(D.deep).join(','),br=h2r(D.cream).join(','),kr=h2r(D.dk).join(',');
+  var v='--tp:'+D.p+';--tpd:'+D.pd+';--tdeep:'+D.deep+';--ts:'+D.s+';--ts2:'+D.s2+';--tbg:'+D.bg+';--tcream:'+D.cream+';--tdk:'+D.dk+';--tdk2:'+D.dk2+';--tl1:'+D.l1+';--tl2:'+D.l2+';--tl3:'+D.l3+';--rg:'+rg+';--srg:'+sr+';--drg:'+dr+';--brg:'+br+';--kdrg:'+kr+';';
+  var o=':root{'+v+'--p:'+D.p+';--pd:'+D.deep+';--pl:'+D.s+';--pdd:'+D.deep+';--pdk:'+D.s+';--accent:'+D.p+';--accent2:'+D.s+';--bg:'+D.bg+';--card:'+D.card+';--ink:'+D.deep+';--muted:'+D.muted+';--line:'+D.line+';--sand:'+D.bg+';--mist:'+D.s+';--steel:'+D.p+';--deep:'+D.deep+'}';
+  o+='@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:'+D.dk+';--card:'+D.deep+';--ink:'+D.cream+';--muted:'+D.s+';--line:'+D.deep+'}}';
+  D.pal.box.forEach(function(c,i){o+='.mbox:nth-child('+(i+1)+'){--c1:'+c[0]+';--c2:'+c[1]+'}'});
+  o+='.cell.marked{background:linear-gradient(145deg,'+D.p+','+D.pd+')!important;border-color:'+D.deep+'!important}';
+  return o;}
+ function apply(t){
+  var D=derive(t); cur=t; curKey=[t&&t.p,t&&t.s,t&&t.bg,t&&t.rainbow||t&&t.id==='fun'].join('|');
+  window.THEME=D; var st=document.getElementById('theme-dyn');
+  if(!st){st=document.createElement('style');st.id='theme-dyn';(document.body||document.documentElement).appendChild(st)} st.textContent=css(D);
+  try{var m=document.querySelector('meta[name=theme-color]');if(!m){m=document.createElement('meta');m.name='theme-color';document.head.appendChild(m)}m.content=D.deep}catch(e){}
+  try{document.dispatchEvent(new CustomEvent('bgtheme',{detail:D}))}catch(e){}
+  return D;}
+ function sync(t){ if(!t||!t.p) return; var k=[t.p,t.s,t.bg,t.rainbow||t.id==='fun'].join('|'); if(k!==curKey) apply(t); }
+ window.BGTheme={PRESETS:PRESETS,derive:derive,apply:apply,sync:sync,get:function(){return cur},h2r:h2r,mix:mix};
+ apply(PRESETS.fun);
+})();</script><script>(function(){
+ var ctx=null,master=null,T=null,live=false;
+ function on(){try{return localStorage.getItem('pmOn')!=='0'}catch(e){return true}}
+ function ensure(){ if(ctx) return ctx; try{ var AC=window.AudioContext||window.webkitAudioContext; if(!AC) return null; ctx=new AC(); master=ctx.createGain(); master.gain.value=0.0001; var comp=ctx.createDynamicsCompressor(); master.connect(comp); comp.connect(ctx.destination);}catch(e){ctx=null} return ctx; }
+ window.SPL_prep=function(){ try{ if(ensure()&&ctx.state==='suspended') ctx.resume(); }catch(e){} };
+ function tone(f,t0,dur,vol,type,pan){ var o=ctx.createOscillator(),g=ctx.createGain(); o.type=type||'sine'; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(vol,t0+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur); o.connect(g); var last=g; if(ctx.createStereoPanner&&pan){var p=ctx.createStereoPanner();p.pan.value=pan;g.connect(p);last=p} last.connect(master); o.start(t0); o.stop(t0+dur+0.05); }
+ function bell(f,t0,dur,vol,pan){ tone(f,t0,dur,vol,'sine',pan); tone(f*2.756,t0,dur*.5,vol*.22,'sine',pan); tone(f*5.4,t0,dur*.25,vol*.08,'sine',pan); }
+ function noise(t0,dur,f0,f1,vol){ var n=ctx.sampleRate*dur,b=ctx.createBuffer(1,n,ctx.sampleRate),d=b.getChannelData(0),i; for(i=0;i<n;i++)d[i]=Math.random()*2-1; var s=ctx.createBufferSource(); s.buffer=b; var f=ctx.createBiquadFilter(); f.type='bandpass'; f.Q.value=1.4; f.frequency.setValueAtTime(f0,t0); f.frequency.exponentialRampToValueAtTime(f1,t0+dur); var g=ctx.createGain(); g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(vol,t0+dur*.85); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur); s.connect(f);f.connect(g);g.connect(master); s.start(t0); }
+ function score(){
+  var t=ctx.currentTime+0.05; master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(0.0001,t); master.gain.exponentialRampToValueAtTime(0.85,t+0.6);
+  // drone
+  [55,55.4,110].forEach(function(f,i){ var o=ctx.createOscillator(),g=ctx.createGain(),lp=ctx.createBiquadFilter(); o.type=i<2?'sawtooth':'sine'; o.frequency.value=f; lp.type='lowpass'; lp.frequency.setValueAtTime(120,t); lp.frequency.exponentialRampToValueAtTime(900,t+2.2); lp.frequency.exponentialRampToValueAtTime(240,t+7); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(i<2?0.07:0.12,t+2.2); g.gain.exponentialRampToValueAtTime(0.0001,t+7); o.connect(lp);lp.connect(g);g.connect(master);o.start(t);o.stop(t+7.1); });
+  noise(t+0.1,1.7,300,6000,0.22);                    // rising whoosh into the logo reveal
+  // impact @ logo reveal
+  var k=ctx.createOscillator(),kg=ctx.createGain(); k.frequency.setValueAtTime(110,t+1.7); k.frequency.exponentialRampToValueAtTime(34,t+2.4); kg.gain.setValueAtTime(0.0001,t+1.7); kg.gain.exponentialRampToValueAtTime(0.9,t+1.73); kg.gain.exponentialRampToValueAtTime(0.0001,t+2.7); k.connect(kg);kg.connect(master);k.start(t+1.7);k.stop(t+2.8);
+  noise(t+1.7,1.6,5000,500,0.16);
+  // grand chord (D major add9) — golden bells
+  [[146.83,.2],[220,-.2],[293.66,.1],[369.99,-.1],[440,.2],[587.33,0]].forEach(function(n,i){ bell(n[0],t+1.72+i*.06,3.6,0.16,n[1]); });
+  // sparkle arpeggio (D pentatonic) while title appears
+  var arp=[587.33,659.25,739.99,880,987.77,1108.7,1318.5,1480,1760]; arp.forEach(function(f,i){ bell(f,t+2.9+i*.2,1.8,0.075,(i%2?.5:-.5)); });
+  // soft resolve
+  [293.66,369.99,440,587.33].forEach(function(f,i){ bell(f,t+5.2+i*.07,2.4,0.1,0); });
+ }
+ function esc(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+ window.showLogoSplash=function(name,done){
+  if(live) return; live=true; var old=document.getElementById('lsplash'); if(old) old.remove();
+  var el=document.createElement('div'); el.id='lsplash'; var sp='',k; for(k=0;k<26;k++) sp+='<s style="left:'+((k*41)%100)+'%;--t:'+(5+k%6)+'s;--d:'+((k%8)*.55)+'s"></s>';
+  el.innerHTML='<div class="ls-rays"></div><div class="ls-glow"></div>'+sp+'<div class="ls-in"><div class="ls-logo"><img src="logo.svg" alt="ધ સંગમ"></div><div class="ls-t">THE SANGAM</div><div class="ls-w">સ્વાગત છે, '+esc(name||'')+'</div><div class="ls-d"><i></i><i></i><i></i></div></div><div class="ls-bar t"></div><div class="ls-bar b"></div><div class="ls-skip">TAP TO SKIP</div>';
+  document.body.appendChild(el);
+  if(on()&&ensure()){ try{ if(ctx.state==='suspended') ctx.resume(); score(); }catch(e){} }
+  var born=Date.now(),fin=function(){ if(!live) return; live=false; clearTimeout(T); el.classList.add('out'); try{ if(ctx&&master){ master.gain.cancelScheduledValues(ctx.currentTime); master.gain.setTargetAtTime(0.0001,ctx.currentTime,0.25);} }catch(e){} setTimeout(function(){ try{el.remove()}catch(e){} try{done&&done()}catch(e){} },900); };
+  el.onclick=function(){ if(Date.now()-born>1500) fin(); };
+  T=setTimeout(fin,7200);
+ };
+})();</script>
+</head>
+<body>
+<div id="app"></div><button id="fs" onclick="document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()">⛶ Full screen</button>
+<script src="/socket.io/socket.io.js"></script>
+<script>/* QR generator (Kazuhiko Arase, MIT) — inline, no CDN needed */
+(function(){var __m={};var __f={};function __r(n){n=n.replace('./','');if(__m[n])return __m[n].exports;var m=__m[n]={exports:{}};__f[n](m,m.exports,__r);return m.exports;}
+__f['QR8bitByte']=function(module,exports,require){
+var QRMode = require('./QRMode');
+
+function QR8bitByte(data) {
+	this.mode = QRMode.MODE_8BIT_BYTE;
+	this.data = data;
+}
+
+QR8bitByte.prototype = {
+
+	getLength : function() {
+		return this.data.length;
+	},
+	
+	write : function(buffer) {
+		for (var i = 0; i < this.data.length; i++) {
+			// not JIS ...
+			buffer.put(this.data.charCodeAt(i), 8);
+		}
+	}
+};
+
+module.exports = QR8bitByte;
+
+};
+__f['QRBitBuffer']=function(module,exports,require){
+function QRBitBuffer() {
+	this.buffer = [];
+	this.length = 0;
+}
+
+QRBitBuffer.prototype = {
+
+	get : function(index) {
+		var bufIndex = Math.floor(index / 8);
+		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+	},
+	
+	put : function(num, length) {
+		for (var i = 0; i < length; i++) {
+			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+		}
+	},
+	
+	getLengthInBits : function() {
+		return this.length;
+	},
+	
+	putBit : function(bit) {
+	
+		var bufIndex = Math.floor(this.length / 8);
+		if (this.buffer.length <= bufIndex) {
+			this.buffer.push(0);
+		}
+	
+		if (bit) {
+			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
+		}
+	
+		this.length++;
+	}
+};
+
+module.exports = QRBitBuffer;
+
+};
+__f['QRErrorCorrectLevel']=function(module,exports,require){
+module.exports = {
+	L : 1,
+	M : 0,
+	Q : 3,
+	H : 2
+};
+
+
+};
+__f['QRMaskPattern']=function(module,exports,require){
+module.exports = {
+	PATTERN000 : 0,
+	PATTERN001 : 1,
+	PATTERN010 : 2,
+	PATTERN011 : 3,
+	PATTERN100 : 4,
+	PATTERN101 : 5,
+	PATTERN110 : 6,
+	PATTERN111 : 7
+};
+
+};
+__f['QRMath']=function(module,exports,require){
+var QRMath = {
+
+	glog : function(n) {
+	
+		if (n < 1) {
+			throw new Error("glog(" + n + ")");
+		}
+		
+		return QRMath.LOG_TABLE[n];
+	},
+	
+	gexp : function(n) {
+	
+		while (n < 0) {
+			n += 255;
+		}
+	
+		while (n >= 256) {
+			n -= 255;
+		}
+	
+		return QRMath.EXP_TABLE[n];
+	},
+	
+	EXP_TABLE : new Array(256),
+	
+	LOG_TABLE : new Array(256)
+
+};
+	
+for (var i = 0; i < 8; i++) {
+	QRMath.EXP_TABLE[i] = 1 << i;
+}
+for (var i = 8; i < 256; i++) {
+	QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
+		^ QRMath.EXP_TABLE[i - 5]
+		^ QRMath.EXP_TABLE[i - 6]
+		^ QRMath.EXP_TABLE[i - 8];
+}
+for (var i = 0; i < 255; i++) {
+	QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
+}
+
+module.exports = QRMath;
+
+};
+__f['QRMode']=function(module,exports,require){
+module.exports = {
+    MODE_NUMBER :       1 << 0,
+    MODE_ALPHA_NUM :    1 << 1,
+    MODE_8BIT_BYTE :    1 << 2,
+    MODE_KANJI :        1 << 3
+};
+
+};
+__f['QRPolynomial']=function(module,exports,require){
+var QRMath = require('./QRMath');
+
+function QRPolynomial(num, shift) {
+	if (num.length === undefined) {
+		throw new Error(num.length + "/" + shift);
+	}
+
+	var offset = 0;
+
+	while (offset < num.length && num[offset] === 0) {
+		offset++;
+	}
+
+	this.num = new Array(num.length - offset + shift);
+	for (var i = 0; i < num.length - offset; i++) {
+		this.num[i] = num[i + offset];
+	}
+}
+
+QRPolynomial.prototype = {
+
+	get : function(index) {
+		return this.num[index];
+	},
+	
+	getLength : function() {
+		return this.num.length;
+	},
+	
+	multiply : function(e) {
+	
+		var num = new Array(this.getLength() + e.getLength() - 1);
+	
+		for (var i = 0; i < this.getLength(); i++) {
+			for (var j = 0; j < e.getLength(); j++) {
+				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
+			}
+		}
+	
+		return new QRPolynomial(num, 0);
+	},
+	
+	mod : function(e) {
+	
+		if (this.getLength() - e.getLength() < 0) {
+			return this;
+		}
+	
+		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
+	
+		var num = new Array(this.getLength() );
+		
+		for (var i = 0; i < this.getLength(); i++) {
+			num[i] = this.get(i);
+		}
+		
+		for (var x = 0; x < e.getLength(); x++) {
+			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
+		}
+	
+		// recursive call
+		return new QRPolynomial(num, 0).mod(e);
+	}
+};
+
+module.exports = QRPolynomial;
+
+};
+__f['QRRSBlock']=function(module,exports,require){
+var QRErrorCorrectLevel = require('./QRErrorCorrectLevel');
+
+function QRRSBlock(totalCount, dataCount) {
+	this.totalCount = totalCount;
+	this.dataCount  = dataCount;
+}
+
+QRRSBlock.RS_BLOCK_TABLE = [
+
+	// L
+	// M
+	// Q
+	// H
+
+	// 1
+	[1, 26, 19],
+	[1, 26, 16],
+	[1, 26, 13],
+	[1, 26, 9],
+	
+	// 2
+	[1, 44, 34],
+	[1, 44, 28],
+	[1, 44, 22],
+	[1, 44, 16],
+
+	// 3
+	[1, 70, 55],
+	[1, 70, 44],
+	[2, 35, 17],
+	[2, 35, 13],
+
+	// 4		
+	[1, 100, 80],
+	[2, 50, 32],
+	[2, 50, 24],
+	[4, 25, 9],
+	
+	// 5
+	[1, 134, 108],
+	[2, 67, 43],
+	[2, 33, 15, 2, 34, 16],
+	[2, 33, 11, 2, 34, 12],
+	
+	// 6
+	[2, 86, 68],
+	[4, 43, 27],
+	[4, 43, 19],
+	[4, 43, 15],
+	
+	// 7		
+	[2, 98, 78],
+	[4, 49, 31],
+	[2, 32, 14, 4, 33, 15],
+	[4, 39, 13, 1, 40, 14],
+	
+	// 8
+	[2, 121, 97],
+	[2, 60, 38, 2, 61, 39],
+	[4, 40, 18, 2, 41, 19],
+	[4, 40, 14, 2, 41, 15],
+	
+	// 9
+	[2, 146, 116],
+	[3, 58, 36, 2, 59, 37],
+	[4, 36, 16, 4, 37, 17],
+	[4, 36, 12, 4, 37, 13],
+	
+	// 10		
+	[2, 86, 68, 2, 87, 69],
+	[4, 69, 43, 1, 70, 44],
+	[6, 43, 19, 2, 44, 20],
+	[6, 43, 15, 2, 44, 16],
+
+	// 11
+	[4, 101, 81],
+	[1, 80, 50, 4, 81, 51],
+	[4, 50, 22, 4, 51, 23],
+	[3, 36, 12, 8, 37, 13],
+
+	// 12
+	[2, 116, 92, 2, 117, 93],
+	[6, 58, 36, 2, 59, 37],
+	[4, 46, 20, 6, 47, 21],
+	[7, 42, 14, 4, 43, 15],
+
+	// 13
+	[4, 133, 107],
+	[8, 59, 37, 1, 60, 38],
+	[8, 44, 20, 4, 45, 21],
+	[12, 33, 11, 4, 34, 12],
+
+	// 14
+	[3, 145, 115, 1, 146, 116],
+	[4, 64, 40, 5, 65, 41],
+	[11, 36, 16, 5, 37, 17],
+	[11, 36, 12, 5, 37, 13],
+
+	// 15
+	[5, 109, 87, 1, 110, 88],
+	[5, 65, 41, 5, 66, 42],
+	[5, 54, 24, 7, 55, 25],
+	[11, 36, 12],
+
+	// 16
+	[5, 122, 98, 1, 123, 99],
+	[7, 73, 45, 3, 74, 46],
+	[15, 43, 19, 2, 44, 20],
+	[3, 45, 15, 13, 46, 16],
+
+	// 17
+	[1, 135, 107, 5, 136, 108],
+	[10, 74, 46, 1, 75, 47],
+	[1, 50, 22, 15, 51, 23],
+	[2, 42, 14, 17, 43, 15],
+
+	// 18
+	[5, 150, 120, 1, 151, 121],
+	[9, 69, 43, 4, 70, 44],
+	[17, 50, 22, 1, 51, 23],
+	[2, 42, 14, 19, 43, 15],
+
+	// 19
+	[3, 141, 113, 4, 142, 114],
+	[3, 70, 44, 11, 71, 45],
+	[17, 47, 21, 4, 48, 22],
+	[9, 39, 13, 16, 40, 14],
+
+	// 20
+	[3, 135, 107, 5, 136, 108],
+	[3, 67, 41, 13, 68, 42],
+	[15, 54, 24, 5, 55, 25],
+	[15, 43, 15, 10, 44, 16],
+
+	// 21
+	[4, 144, 116, 4, 145, 117],
+	[17, 68, 42],
+	[17, 50, 22, 6, 51, 23],
+	[19, 46, 16, 6, 47, 17],
+
+	// 22
+	[2, 139, 111, 7, 140, 112],
+	[17, 74, 46],
+	[7, 54, 24, 16, 55, 25],
+	[34, 37, 13],
+
+	// 23
+	[4, 151, 121, 5, 152, 122],
+	[4, 75, 47, 14, 76, 48],
+	[11, 54, 24, 14, 55, 25],
+	[16, 45, 15, 14, 46, 16],
+
+	// 24
+	[6, 147, 117, 4, 148, 118],
+	[6, 73, 45, 14, 74, 46],
+	[11, 54, 24, 16, 55, 25],
+	[30, 46, 16, 2, 47, 17],
+
+	// 25
+	[8, 132, 106, 4, 133, 107],
+	[8, 75, 47, 13, 76, 48],
+	[7, 54, 24, 22, 55, 25],
+	[22, 45, 15, 13, 46, 16],
+
+	// 26
+	[10, 142, 114, 2, 143, 115],
+	[19, 74, 46, 4, 75, 47],
+	[28, 50, 22, 6, 51, 23],
+	[33, 46, 16, 4, 47, 17],
+
+	// 27
+	[8, 152, 122, 4, 153, 123],
+	[22, 73, 45, 3, 74, 46],
+	[8, 53, 23, 26, 54, 24],
+	[12, 45, 15, 28, 46, 16],
+
+	// 28
+	[3, 147, 117, 10, 148, 118],
+	[3, 73, 45, 23, 74, 46],
+	[4, 54, 24, 31, 55, 25],
+	[11, 45, 15, 31, 46, 16],
+
+	// 29
+	[7, 146, 116, 7, 147, 117],
+	[21, 73, 45, 7, 74, 46],
+	[1, 53, 23, 37, 54, 24],
+	[19, 45, 15, 26, 46, 16],
+
+	// 30
+	[5, 145, 115, 10, 146, 116],
+	[19, 75, 47, 10, 76, 48],
+	[15, 54, 24, 25, 55, 25],
+	[23, 45, 15, 25, 46, 16],
+
+	// 31
+	[13, 145, 115, 3, 146, 116],
+	[2, 74, 46, 29, 75, 47],
+	[42, 54, 24, 1, 55, 25],
+	[23, 45, 15, 28, 46, 16],
+
+	// 32
+	[17, 145, 115],
+	[10, 74, 46, 23, 75, 47],
+	[10, 54, 24, 35, 55, 25],
+	[19, 45, 15, 35, 46, 16],
+
+	// 33
+	[17, 145, 115, 1, 146, 116],
+	[14, 74, 46, 21, 75, 47],
+	[29, 54, 24, 19, 55, 25],
+	[11, 45, 15, 46, 46, 16],
+
+	// 34
+	[13, 145, 115, 6, 146, 116],
+	[14, 74, 46, 23, 75, 47],
+	[44, 54, 24, 7, 55, 25],
+	[59, 46, 16, 1, 47, 17],
+
+	// 35
+	[12, 151, 121, 7, 152, 122],
+	[12, 75, 47, 26, 76, 48],
+	[39, 54, 24, 14, 55, 25],
+	[22, 45, 15, 41, 46, 16],
+
+	// 36
+	[6, 151, 121, 14, 152, 122],
+	[6, 75, 47, 34, 76, 48],
+	[46, 54, 24, 10, 55, 25],
+	[2, 45, 15, 64, 46, 16],
+
+	// 37
+	[17, 152, 122, 4, 153, 123],
+	[29, 74, 46, 14, 75, 47],
+	[49, 54, 24, 10, 55, 25],
+	[24, 45, 15, 46, 46, 16],
+
+	// 38
+	[4, 152, 122, 18, 153, 123],
+	[13, 74, 46, 32, 75, 47],
+	[48, 54, 24, 14, 55, 25],
+	[42, 45, 15, 32, 46, 16],
+
+	// 39
+	[20, 147, 117, 4, 148, 118],
+	[40, 75, 47, 7, 76, 48],
+	[43, 54, 24, 22, 55, 25],
+	[10, 45, 15, 67, 46, 16],
+
+	// 40
+	[19, 148, 118, 6, 149, 119],
+	[18, 75, 47, 31, 76, 48],
+	[34, 54, 24, 34, 55, 25],
+	[20, 45, 15, 61, 46, 16]
+];
+
+QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
+	
+	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+	
+	if (rsBlock === undefined) {
+		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+	}
+
+	var length = rsBlock.length / 3;
+	
+	var list = [];
+	
+	for (var i = 0; i < length; i++) {
+
+		var count = rsBlock[i * 3 + 0];
+		var totalCount = rsBlock[i * 3 + 1];
+		var dataCount  = rsBlock[i * 3 + 2];
+
+		for (var j = 0; j < count; j++) {
+			list.push(new QRRSBlock(totalCount, dataCount) );	
+		}
+	}
+	
+	return list;
+};
+
+QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
+
+	switch(errorCorrectLevel) {
+	case QRErrorCorrectLevel.L :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+	case QRErrorCorrectLevel.M :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+	case QRErrorCorrectLevel.Q :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+	case QRErrorCorrectLevel.H :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+	default :
+		return undefined;
+	}
+};
+
+module.exports = QRRSBlock;
+
+};
+__f['QRUtil']=function(module,exports,require){
+var QRMode = require('./QRMode');
+var QRPolynomial = require('./QRPolynomial');
+var QRMath = require('./QRMath');
+var QRMaskPattern = require('./QRMaskPattern');
+
+var QRUtil = {
+
+    PATTERN_POSITION_TABLE : [
+        [],
+        [6, 18],
+        [6, 22],
+        [6, 26],
+        [6, 30],
+        [6, 34],
+        [6, 22, 38],
+        [6, 24, 42],
+        [6, 26, 46],
+        [6, 28, 50],
+        [6, 30, 54],        
+        [6, 32, 58],
+        [6, 34, 62],
+        [6, 26, 46, 66],
+        [6, 26, 48, 70],
+        [6, 26, 50, 74],
+        [6, 30, 54, 78],
+        [6, 30, 56, 82],
+        [6, 30, 58, 86],
+        [6, 34, 62, 90],
+        [6, 28, 50, 72, 94],
+        [6, 26, 50, 74, 98],
+        [6, 30, 54, 78, 102],
+        [6, 28, 54, 80, 106],
+        [6, 32, 58, 84, 110],
+        [6, 30, 58, 86, 114],
+        [6, 34, 62, 90, 118],
+        [6, 26, 50, 74, 98, 122],
+        [6, 30, 54, 78, 102, 126],
+        [6, 26, 52, 78, 104, 130],
+        [6, 30, 56, 82, 108, 134],
+        [6, 34, 60, 86, 112, 138],
+        [6, 30, 58, 86, 114, 142],
+        [6, 34, 62, 90, 118, 146],
+        [6, 30, 54, 78, 102, 126, 150],
+        [6, 24, 50, 76, 102, 128, 154],
+        [6, 28, 54, 80, 106, 132, 158],
+        [6, 32, 58, 84, 110, 136, 162],
+        [6, 26, 54, 82, 110, 138, 166],
+        [6, 30, 58, 86, 114, 142, 170]
+    ],
+
+    G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
+    G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
+    G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
+
+    getBCHTypeInfo : function(data) {
+        var d = data << 10;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+        }
+        return ( (data << 10) | d) ^ QRUtil.G15_MASK;
+    },
+
+    getBCHTypeNumber : function(data) {
+        var d = data << 12;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+        }
+        return (data << 12) | d;
+    },
+
+    getBCHDigit : function(data) {
+
+        var digit = 0;
+
+        while (data !== 0) {
+            digit++;
+            data >>>= 1;
+        }
+
+        return digit;
+    },
+
+    getPatternPosition : function(typeNumber) {
+        return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+    },
+
+    getMask : function(maskPattern, i, j) {
+        
+        switch (maskPattern) {
+            
+        case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
+        case QRMaskPattern.PATTERN001 : return i % 2 === 0;
+        case QRMaskPattern.PATTERN010 : return j % 3 === 0;
+        case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
+        case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
+        case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
+        case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
+        case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
+
+        default :
+            throw new Error("bad maskPattern:" + maskPattern);
+        }
+    },
+
+    getErrorCorrectPolynomial : function(errorCorrectLength) {
+
+        var a = new QRPolynomial([1], 0);
+
+        for (var i = 0; i < errorCorrectLength; i++) {
+            a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
+        }
+
+        return a;
+    },
+
+    getLengthInBits : function(mode, type) {
+
+        if (1 <= type && type < 10) {
+
+            // 1 - 9
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 10;
+            case QRMode.MODE_ALPHA_NUM  : return 9;
+            case QRMode.MODE_8BIT_BYTE  : return 8;
+            case QRMode.MODE_KANJI      : return 8;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 27) {
+
+            // 10 - 26
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 12;
+            case QRMode.MODE_ALPHA_NUM  : return 11;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 10;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 41) {
+
+            // 27 - 40
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 14;
+            case QRMode.MODE_ALPHA_NUM  : return 13;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 12;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else {
+            throw new Error("type:" + type);
+        }
+    },
+
+    getLostPoint : function(qrCode) {
+        
+        var moduleCount = qrCode.getModuleCount();
+        var lostPoint = 0;
+        var row = 0; 
+        var col = 0;
+
+        
+        // LEVEL1
+        
+        for (row = 0; row < moduleCount; row++) {
+
+            for (col = 0; col < moduleCount; col++) {
+
+                var sameCount = 0;
+                var dark = qrCode.isDark(row, col);
+
+                for (var r = -1; r <= 1; r++) {
+
+                    if (row + r < 0 || moduleCount <= row + r) {
+                        continue;
+                    }
+
+                    for (var c = -1; c <= 1; c++) {
+
+                        if (col + c < 0 || moduleCount <= col + c) {
+                            continue;
+                        }
+
+                        if (r === 0 && c === 0) {
+                            continue;
+                        }
+
+                        if (dark === qrCode.isDark(row + r, col + c) ) {
+                            sameCount++;
+                        }
+                    }
+                }
+
+                if (sameCount > 5) {
+                    lostPoint += (3 + sameCount - 5);
+                }
+            }
+        }
+
+        // LEVEL2
+
+        for (row = 0; row < moduleCount - 1; row++) {
+            for (col = 0; col < moduleCount - 1; col++) {
+                var count = 0;
+                if (qrCode.isDark(row,     col    ) ) count++;
+                if (qrCode.isDark(row + 1, col    ) ) count++;
+                if (qrCode.isDark(row,     col + 1) ) count++;
+                if (qrCode.isDark(row + 1, col + 1) ) count++;
+                if (count === 0 || count === 4) {
+                    lostPoint += 3;
+                }
+            }
+        }
+
+        // LEVEL3
+
+        for (row = 0; row < moduleCount; row++) {
+            for (col = 0; col < moduleCount - 6; col++) {
+                if (qrCode.isDark(row, col) && 
+                        !qrCode.isDark(row, col + 1) && 
+                         qrCode.isDark(row, col + 2) && 
+                         qrCode.isDark(row, col + 3) && 
+                         qrCode.isDark(row, col + 4) && 
+                        !qrCode.isDark(row, col + 5) && 
+                         qrCode.isDark(row, col + 6) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount - 6; row++) {
+                if (qrCode.isDark(row, col) &&
+                        !qrCode.isDark(row + 1, col) &&
+                         qrCode.isDark(row + 2, col) &&
+                         qrCode.isDark(row + 3, col) &&
+                         qrCode.isDark(row + 4, col) &&
+                        !qrCode.isDark(row + 5, col) &&
+                         qrCode.isDark(row + 6, col) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        // LEVEL4
+        
+        var darkCount = 0;
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount; row++) {
+                if (qrCode.isDark(row, col) ) {
+                    darkCount++;
+                }
+            }
+        }
+        
+        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+        lostPoint += ratio * 10;
+
+        return lostPoint;       
+    }
+
+};
+
+module.exports = QRUtil;
+
+};
+__f['index']=function(module,exports,require){
+//---------------------------------------------------------------------
+// QRCode for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//   http://www.opensource.org/licenses/mit-license.php
+//
+// The word "QR Code" is registered trademark of 
+// DENSO WAVE INCORPORATED
+//   http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+// Modified to work in node for this project (and some refactoring)
+//---------------------------------------------------------------------
+
+var QR8bitByte = require('./QR8bitByte');
+var QRUtil = require('./QRUtil');
+var QRPolynomial = require('./QRPolynomial');
+var QRRSBlock = require('./QRRSBlock');
+var QRBitBuffer = require('./QRBitBuffer');
+
+function QRCode(typeNumber, errorCorrectLevel) {
+	this.typeNumber = typeNumber;
+	this.errorCorrectLevel = errorCorrectLevel;
+	this.modules = null;
+	this.moduleCount = 0;
+	this.dataCache = null;
+	this.dataList = [];
+}
+
+QRCode.prototype = {
+	
+	addData : function(data) {
+		var newData = new QR8bitByte(data);
+		this.dataList.push(newData);
+		this.dataCache = null;
+	},
+	
+	isDark : function(row, col) {
+		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+			throw new Error(row + "," + col);
+		}
+		return this.modules[row][col];
+	},
+
+	getModuleCount : function() {
+		return this.moduleCount;
+	},
+	
+	make : function() {
+		// Calculate automatically typeNumber if provided is < 1
+		if (this.typeNumber < 1 ){
+			var typeNumber = 1;
+			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
+
+				var buffer = new QRBitBuffer();
+				var totalDataCount = 0;
+				for (var i = 0; i < rsBlocks.length; i++) {
+					totalDataCount += rsBlocks[i].dataCount;
+				}
+
+				for (var x = 0; x < this.dataList.length; x++) {
+					var data = this.dataList[x];
+					buffer.put(data.mode, 4);
+					buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+					data.write(buffer);
+				}
+				if (buffer.getLengthInBits() <= totalDataCount * 8)
+					break;
+			}
+			this.typeNumber = typeNumber;
+		}
+		this.makeImpl(false, this.getBestMaskPattern() );
+	},
+	
+	makeImpl : function(test, maskPattern) {
+		
+		this.moduleCount = this.typeNumber * 4 + 17;
+		this.modules = new Array(this.moduleCount);
+		
+		for (var row = 0; row < this.moduleCount; row++) {
+			
+			this.modules[row] = new Array(this.moduleCount);
+			
+			for (var col = 0; col < this.moduleCount; col++) {
+				this.modules[row][col] = null;//(col + row) % 3;
+			}
+		}
+	
+		this.setupPositionProbePattern(0, 0);
+		this.setupPositionProbePattern(this.moduleCount - 7, 0);
+		this.setupPositionProbePattern(0, this.moduleCount - 7);
+		this.setupPositionAdjustPattern();
+		this.setupTimingPattern();
+		this.setupTypeInfo(test, maskPattern);
+		
+		if (this.typeNumber >= 7) {
+			this.setupTypeNumber(test);
+		}
+	
+		if (this.dataCache === null) {
+			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+		}
+	
+		this.mapData(this.dataCache, maskPattern);
+	},
+
+	setupPositionProbePattern : function(row, col)  {
+		
+		for (var r = -1; r <= 7; r++) {
+			
+			if (row + r <= -1 || this.moduleCount <= row + r) continue;
+			
+			for (var c = -1; c <= 7; c++) {
+				
+				if (col + c <= -1 || this.moduleCount <= col + c) continue;
+				
+				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
+                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+                     (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+					this.modules[row + r][col + c] = true;
+				} else {
+					this.modules[row + r][col + c] = false;
+				}
+			}		
+		}		
+	},
+	
+	getBestMaskPattern : function() {
+	
+		var minLostPoint = 0;
+		var pattern = 0;
+	
+		for (var i = 0; i < 8; i++) {
+			
+			this.makeImpl(true, i);
+	
+			var lostPoint = QRUtil.getLostPoint(this);
+	
+			if (i === 0 || minLostPoint >  lostPoint) {
+				minLostPoint = lostPoint;
+				pattern = i;
+			}
+		}
+	
+		return pattern;
+	},
+	
+	createMovieClip : function(target_mc, instance_name, depth) {
+	
+		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+		var cs = 1;
+	
+		this.make();
+
+		for (var row = 0; row < this.modules.length; row++) {
+			
+			var y = row * cs;
+			
+			for (var col = 0; col < this.modules[row].length; col++) {
+	
+				var x = col * cs;
+				var dark = this.modules[row][col];
+			
+				if (dark) {
+					qr_mc.beginFill(0, 100);
+					qr_mc.moveTo(x, y);
+					qr_mc.lineTo(x + cs, y);
+					qr_mc.lineTo(x + cs, y + cs);
+					qr_mc.lineTo(x, y + cs);
+					qr_mc.endFill();
+				}
+			}
+		}
+		
+		return qr_mc;
+	},
+
+	setupTimingPattern : function() {
+		
+		for (var r = 8; r < this.moduleCount - 8; r++) {
+			if (this.modules[r][6] !== null) {
+				continue;
+			}
+			this.modules[r][6] = (r % 2 === 0);
+		}
+	
+		for (var c = 8; c < this.moduleCount - 8; c++) {
+			if (this.modules[6][c] !== null) {
+				continue;
+			}
+			this.modules[6][c] = (c % 2 === 0);
+		}
+	},
+	
+	setupPositionAdjustPattern : function() {
+	
+		var pos = QRUtil.getPatternPosition(this.typeNumber);
+		
+		for (var i = 0; i < pos.length; i++) {
+		
+			for (var j = 0; j < pos.length; j++) {
+			
+				var row = pos[i];
+				var col = pos[j];
+				
+				if (this.modules[row][col] !== null) {
+					continue;
+				}
+				
+				for (var r = -2; r <= 2; r++) {
+				
+					for (var c = -2; c <= 2; c++) {
+					
+						if (Math.abs(r) === 2 || 
+                            Math.abs(c) === 2 ||
+                            (r === 0 && c === 0) ) {
+							this.modules[row + r][col + c] = true;
+						} else {
+							this.modules[row + r][col + c] = false;
+						}
+					}
+				}
+			}
+		}
+	},
+	
+	setupTypeNumber : function(test) {
+	
+		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+        var mod;
+	
+		for (var i = 0; i < 18; i++) {
+			mod = (!test && ( (bits >> i) & 1) === 1);
+			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+		}
+	
+		for (var x = 0; x < 18; x++) {
+			mod = (!test && ( (bits >> x) & 1) === 1);
+			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
+		}
+	},
+	
+	setupTypeInfo : function(test, maskPattern) {
+	
+		var data = (this.errorCorrectLevel << 3) | maskPattern;
+		var bits = QRUtil.getBCHTypeInfo(data);
+        var mod;
+	
+		// vertical		
+		for (var v = 0; v < 15; v++) {
+	
+			mod = (!test && ( (bits >> v) & 1) === 1);
+	
+			if (v < 6) {
+				this.modules[v][8] = mod;
+			} else if (v < 8) {
+				this.modules[v + 1][8] = mod;
+			} else {
+				this.modules[this.moduleCount - 15 + v][8] = mod;
+			}
+		}
+	
+		// horizontal
+		for (var h = 0; h < 15; h++) {
+	
+			mod = (!test && ( (bits >> h) & 1) === 1);
+			
+			if (h < 8) {
+				this.modules[8][this.moduleCount - h - 1] = mod;
+			} else if (h < 9) {
+				this.modules[8][15 - h - 1 + 1] = mod;
+			} else {
+				this.modules[8][15 - h - 1] = mod;
+			}
+		}
+	
+		// fixed module
+		this.modules[this.moduleCount - 8][8] = (!test);
+	
+	},
+	
+	mapData : function(data, maskPattern) {
+		
+		var inc = -1;
+		var row = this.moduleCount - 1;
+		var bitIndex = 7;
+		var byteIndex = 0;
+		
+		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+	
+			if (col === 6) col--;
+	
+			while (true) {
+	
+				for (var c = 0; c < 2; c++) {
+					
+					if (this.modules[row][col - c] === null) {
+						
+						var dark = false;
+	
+						if (byteIndex < data.length) {
+							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
+						}
+	
+						var mask = QRUtil.getMask(maskPattern, row, col - c);
+	
+						if (mask) {
+							dark = !dark;
+						}
+						
+						this.modules[row][col - c] = dark;
+						bitIndex--;
+	
+						if (bitIndex === -1) {
+							byteIndex++;
+							bitIndex = 7;
+						}
+					}
+				}
+								
+				row += inc;
+	
+				if (row < 0 || this.moduleCount <= row) {
+					row -= inc;
+					inc = -inc;
+					break;
+				}
+			}
+		}
+		
+	}
+
+};
+
+QRCode.PAD0 = 0xEC;
+QRCode.PAD1 = 0x11;
+
+QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
+	
+	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+	
+	var buffer = new QRBitBuffer();
+	
+	for (var i = 0; i < dataList.length; i++) {
+		var data = dataList[i];
+		buffer.put(data.mode, 4);
+		buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+		data.write(buffer);
+	}
+
+	// calc num max data.
+	var totalDataCount = 0;
+	for (var x = 0; x < rsBlocks.length; x++) {
+		totalDataCount += rsBlocks[x].dataCount;
+	}
+
+	if (buffer.getLengthInBits() > totalDataCount * 8) {
+		throw new Error("code length overflow. (" + 
+            buffer.getLengthInBits() + 
+            ">" +  
+            totalDataCount * 8 + 
+            ")");
+	}
+
+	// end code
+	if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+		buffer.put(0, 4);
+	}
+
+	// padding
+	while (buffer.getLengthInBits() % 8 !== 0) {
+		buffer.putBit(false);
+	}
+
+	// padding
+	while (true) {
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD0, 8);
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD1, 8);
+	}
+
+	return QRCode.createBytes(buffer, rsBlocks);
+};
+
+QRCode.createBytes = function(buffer, rsBlocks) {
+
+	var offset = 0;
+	
+	var maxDcCount = 0;
+	var maxEcCount = 0;
+	
+	var dcdata = new Array(rsBlocks.length);
+	var ecdata = new Array(rsBlocks.length);
+	
+	for (var r = 0; r < rsBlocks.length; r++) {
+
+		var dcCount = rsBlocks[r].dataCount;
+		var ecCount = rsBlocks[r].totalCount - dcCount;
+
+		maxDcCount = Math.max(maxDcCount, dcCount);
+		maxEcCount = Math.max(maxEcCount, ecCount);
+		
+		dcdata[r] = new Array(dcCount);
+		
+		for (var i = 0; i < dcdata[r].length; i++) {
+			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+		}
+		offset += dcCount;
+		
+		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+		var modPoly = rawPoly.mod(rsPoly);
+		ecdata[r] = new Array(rsPoly.getLength() - 1);
+		for (var x = 0; x < ecdata[r].length; x++) {
+            var modIndex = x + modPoly.getLength() - ecdata[r].length;
+			ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
+		}
+
+	}
+	
+	var totalCodeCount = 0;
+	for (var y = 0; y < rsBlocks.length; y++) {
+		totalCodeCount += rsBlocks[y].totalCount;
+	}
+
+	var data = new Array(totalCodeCount);
+	var index = 0;
+
+	for (var z = 0; z < maxDcCount; z++) {
+		for (var s = 0; s < rsBlocks.length; s++) {
+			if (z < dcdata[s].length) {
+				data[index++] = dcdata[s][z];
+			}
+		}
+	}
+
+	for (var xx = 0; xx < maxEcCount; xx++) {
+		for (var t = 0; t < rsBlocks.length; t++) {
+			if (xx < ecdata[t].length) {
+				data[index++] = ecdata[t][xx];
+			}
+		}
+	}
+
+	return data;
+
+};
+
+module.exports = QRCode;
+
+};
+var QRCode=__r('index'),EC=__r('QRErrorCorrectLevel');
+window.makeQrSvg=function(text,px){var q=new QRCode(-1,EC.M);q.addData(text);q.make();var n=q.getModuleCount(),pad=4,t=n+pad*2,d='';
+for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(q.modules[r][c])d+='M'+(c+pad)+' '+(r+pad)+'h1v1h-1z';
+return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+t+' '+t+'" width="'+px+'" height="'+px+'" shape-rendering="crispEdges"><rect width="'+t+'" height="'+t+'" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>';};
+})();
+</script>
+<script>
+const socket = io(), $ = s => document.querySelector(s), app = $('#app');
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const qs = new URLSearchParams(location.search), CODE = (qs.get('code')||qs.get('pj')||'').toUpperCase();
+let S = null, sig = '', splashed = false;
+document.addEventListener('bgtheme', e => { const D=e.detail, r=document.documentElement.style; r.setProperty('--ac',D.l1); r.setProperty('--gd',D.s); });
+try{ BGTheme.apply(BGTheme.get()); }catch(e){}
+const ZC = ['#F59E0B','#EC4899','#14B8A6','#60A5FA','#4ADE80','#A78BFA','#F87171','#22D3EE'];
+const zc = z => ZC[Math.max(0,S.zones.indexOf(z)) % ZC.length];
+const left = () => !S ? 0 : S.paused ? (S.pausedMs||0) : S.timerEnd ? S.timerEnd - Date.now() : 0;
+const sec = ms => Math.max(0, Math.ceil(ms/1000));
+const wcol = i => { const w = (window.THEME && THEME.pal && THEME.pal.wheel) || [['#F59E0B']]; return w[i % w.length][0]; };
+function wheelHTML(nums){
+  const n = nums.length, R = 100, sl = 360/n; let s = '<svg viewBox="-112 -112 224 224"><circle r="110" fill="#B45309"/><circle r="107" fill="none" stroke="#FDE68A" stroke-width="2"/><g id="wg">';
+  nums.forEach((v,i) => { const a0=(i*sl-90)*Math.PI/180, a1=((i+1)*sl-90)*Math.PI/180, am=(a0+a1)/2, tx=R*.72*Math.cos(am), ty=R*.72*Math.sin(am);
+    s += '<path d="M0 0L'+(R*Math.cos(a0)).toFixed(2)+' '+(R*Math.sin(a0)).toFixed(2)+'A'+R+' '+R+' 0 '+(sl>180?1:0)+' 1 '+(R*Math.cos(a1)).toFixed(2)+' '+(R*Math.sin(a1)).toFixed(2)+'Z" fill="'+wcol(i)+'" stroke="#fff" stroke-opacity=".7" stroke-width="1"/>'+
+         '<text x="'+tx.toFixed(2)+'" y="'+ty.toFixed(2)+'" fill="#fff" font-family="Baloo Bhai 2,sans-serif" font-size="'+(n>14?10:n>8?13:17)+'" font-weight="800" text-anchor="middle" dominant-baseline="central" transform="rotate('+((am*180/Math.PI)+90).toFixed(1)+' '+tx.toFixed(2)+' '+ty.toFixed(2)+')">'+v+'</text>'; });
+  return s + '</g><circle r="12" fill="#FDE68A" stroke="#B45309" stroke-width="3"/></svg>';
+}
+function spinWheel(){ const g=$('#wg'); if(!g||!S.wheelNums) return; const i=S.wheelNums.indexOf(S.qNo), n=S.wheelNums.length, sl=360/n, final=360*7-(i+.5)*sl, dur=9000, el=Date.now()-S.spinAt;
+  g.style.transformOrigin='0 0'; g.style.transformBox='view-box';
+  if (S.status!=='spinning'||el>=dur){ g.style.transition='none'; g.style.transform='rotate('+final+'deg)'; return; }
+  g.style.transition='none'; g.style.transform='rotate(0deg)'; g.getBoundingClientRect();
+  g.style.transition='transform '+Math.max(200,dur-Math.max(0,el))+'ms cubic-bezier(.12,.6,.1,1)'; g.style.transform='rotate('+final+'deg)'; }
+function ring(total){ const C=2*Math.PI*40; return '<div class="ring" data-total="'+total+'"><svg viewBox="0 0 100 100"><circle class="bgc" cx="50" cy="50" r="40"/><circle class="fg" cx="50" cy="50" r="40" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="0"/></svg><b data-tm>'+sec(left())+'</b></div>'; }
+const pn = () => { const n = S.phaseNames[Math.min(S.phase,3)]||''; return /^ફેઝ\s*\d/.test(n) ? n : 'ફેઝ '+(S.phase+1)+' · '+n; };
+function zonesBoard(fog){
+  return '<div class="zg">'+S.zones.map(z => { const b=S.byZone[z], pct=b.n?Math.round(b.marked/b.n*100):0, c=zc(z); let rows=''; for(let i=0;i<5;i++) rows+='<i style="width:'+(88-i*11)+'%;background:'+c+'"></i>';
+    return '<div class="glass zc"><div class="nm"><span>ઝોન '+esc(z)+'</span><span class="dot" style="background:'+c+';color:'+c+'"></span></div><div class="fort"><div class="tri"></div>'+rows+(fog===false?'':'<div class="fog">સ્કોર છુપાયેલો</div>')+'</div><div><div class="row"><span>ઝડપ · '+b.marked+'/'+b.n+'</span><b>'+pct+'%</b></div><div class="bar"><div style="width:'+pct+'%;background:'+c+'"></div></div></div></div>'; }).join('')+'</div>';
+}
+function confetti(){ let h='',c=['#FDE047','#F97316','#EC4899','#60A5FA','#4ADE80','#fff']; for(let i=0;i<46;i++) h+='<i style="left:'+((i*37)%100)+'%;background:'+c[i%6]+';animation-duration:'+(4+i%5)+'s;animation-delay:'+((i%9)*.5)+'s;--r:'+(360+i*37)+'deg"></i>'; return '<div class="conf">'+h+'</div>'; }
+const wcard = (cat,av,name,sub,sc) => '<div class="glass grand"><div class="cat">'+cat+'</div><div class="av">'+(av||'🏆')+'</div><div class="nm">'+esc(name)+'</div><div class="h2">'+sub+'</div>'+(sc!=null?'<div class="sc">'+sc+'</div>':'')+'</div>';
+function revealScene(){
+  const V=S.reveal, st=V.steps[V.step], w=V.win;
+  const strip = () => { const a=[]; ['z3','z2','z1'].forEach(k=>w[k]&&a.push('<div>'+({z3:'🥉',z2:'🥈',z1:'🥇'}[k])+' ઝોન '+esc(w[k].zone)+'</div>')); ['p3','p2','p1'].forEach(k=>w[k]&&a.push('<div>'+({p3:'🥉',p2:'🥈',p1:'🥇'}[k])+' '+esc(w[k].name)+'</div>')); return a.length?'<div class="strip">'+a.join('')+'</div>':''; };
+  const med = {z3:'🥉 ઝોન · ત્રીજો ક્રમ',z2:'🥈 ઝોન · બીજો ક્રમ',z1:'🥇 ઝોન · પહેલો ક્રમ',p3:'🥉 ખેલાડી · ત્રીજો ક્રમ',p2:'🥈 ખેલાડી · બીજો ક્રમ',p1:'🥇 ખેલાડી · પહેલો ક્રમ'};
+  const K = t => '<div class="kick">ધ સંગમ · અંતિમ પરિણામ</div>' + (t?'<div class="h1" style="font-size:clamp(2rem,6vh,4rem)">'+t+'</div>':'');
+  if (st==='tiles') return K('ચિત્ર ખૂલી રહ્યું છે…')+'<div class="glass grand"><div class="cat">તમારા ફોન તરફ જુઓ</div><div class="h2">દરેક ખેલાડી પોતાનું ચિત્ર અને સ્કોર જુએ છે</div></div>';
+  if (st==='yuddh'){ const Y=V.yuddh; return K('યુદ્ધનો હિસાબ')+'<div class="zg">'+Y.zones.map(z=>{ let a=0,sh=0,net=0; Y.table.forEach(r=>{const o=r[z]; if(o){a+=o.arrows;sh+=o.shields;net+=o.net;}}); const loss=Y.loss[z]||0, c=zc(z);
+    return '<div class="glass zc"><div class="nm"><span>ઝોન '+esc(z)+'</span><span class="dot" style="background:'+c+';color:'+c+'"></span></div><div style="display:flex;height:1.3rem;border-radius:.4rem;overflow:hidden;background:rgba(0,0,0,.35)"><div style="width:'+(100-loss*5)+'%;background:'+c+'"></div><div style="width:'+(loss*5)+'%;background:repeating-linear-gradient(135deg,#c8372d 0 4px,#8f231c 4px 8px)"></div></div><b style="font-size:1.5rem;color:'+(loss?'#fda4a4':'#86efac')+'">'+(loss?'−'+loss.toFixed(1)+'%':'કોઈ નુકસાન નહીં')+'</b><div class="row"><span>⚔ બાણ</span><b>'+a+'</b></div><div class="row"><span>🛡 ઢાલ</span><b>'+sh+'</b></div><div class="row"><span>ચોખ્ખા ફટકા</span><b>'+net+'</b></div></div>'; }).join('')+'</div><div class="h2">નુકસાન % = ચોખ્ખા ફટકા ÷ ઝોનના ખેલાડી × 20% (વધુમાં વધુ 20%)</div>'; }
+  if (/^z\d$/.test(st)){ const o=w[st]; return confetti()+K('')+(o?wcard(med[st],'🏰','ઝોન '+o.zone,'સરેરાશ '+o.avg+' · નુકસાન −'+o.loss+'% · '+o.n+' ખેલાડી',o.score):'')+strip(); }
+  if (/^p\d$/.test(st)){ const o=w[st]; return confetti()+K('')+(o?wcard(med[st],o.avatar,o.name,'ઝોન '+esc(o.zone),o.total):'')+strip(); }
+  if (st==='chinh'){ const a=w.chinh||[]; return confetti()+K('')+'<div class="glass grand"><div class="cat">🎯 ગુપ્ત ચિહ્ન વિજેતા</div><div class="h2" style="margin:.5rem 0 1rem">ખાનું: પંક્તિ '+(Math.floor((V.chinhCi||0)/5)+1)+' · સ્તંભ '+((V.chinhCi||0)%5+1)+' · '+a.length+' જણ (+5)</div><div class="names">'+(a.slice(0,48).map(o=>'<span>'+(o.avatar||'')+' '+esc(o.name)+'</span>').join('')||'<span>કોઈ નહીં</span>')+(a.length>48?'<span>+'+(a.length-48)+'</span>':'')+'</div></div>'; }
+  if (st==='jodi'){ const o=w.jodi; return confetti()+K('')+(o?'<div class="glass grand"><div class="cat">🤝 જોડીનો રાજા</div><div class="av">'+o.a.avatar+' '+o.b.avatar+'</div><div class="nm">'+esc(o.a.name)+' + '+esc(o.b.name)+'</div><div class="h2">'+o.n+' પ્રશ્નો બંનેએ સાચા કર્યા</div></div>':'<div class="glass grand"><div class="cat">જોડી નક્કી ન થઈ</div></div>'); }
+  if (st==='pratham'){ const o=w.pratham; return confetti()+K('')+(o?wcard('⭐ શુભ પ્રથમ',o.avatar,o.name,'સૌથી પહેલી શુભ લાઇન પૂરી · '+esc(o.line)+' · ઝોન '+esc(o.zone),o.total):'<div class="glass grand"><div class="cat">કોઈએ શુભ લાઇન પૂરી ન કરી</div></div>'); }
+  if (st==='shiromani'){ const o=w.shiromani; return confetti()+K('')+(o?wcard('👑 શુભ શિરોમણિ',o.avatar,o.name,'શુભ લાઇન સાથે સૌથી વધુ સ્કોર · ઝોન '+esc(o.zone),o.total):'<div class="glass grand"><div class="cat">કોઈએ શુભ લાઇન પૂરી ન કરી</div></div>')+'<div class="h2">શુભ લાઇન પૂરી કરનાર કુલ: '+V.nShubh+'</div>'; }
+  if (st==='chitra'){ const m=V.mosaic||[], N=Math.max(1,m.length); let t=''; for(let i=0;i<25;i++){ const f=m.filter(x=>x>=i+1).length/N; t+='<div style="background-image:url(/chitra/'+CODE+');background-position:'+((i%5)*25)+'% '+(Math.floor(i/5)*25)+'%;opacity:'+(.15+.85*f).toFixed(2)+';filter:grayscale('+(1-f).toFixed(2)+')"></div>'; }
+    return confetti()+K('સભાનું ચિત્ર')+'<div class="frame"><div class="mos">'+t+'</div></div><div class="h2">દરેક ખાનું જેટલા ખેલાડીઓએ ખોલ્યું તેટલું ઝળહળે છે · બિરુદ બધાના ફોનમાં</div>'; }
+  return K('');
+}
+function mainHTML(){
+  const st=S.status, ph=pn();
+  const K=(k,t,sub)=>'<div class="kick">'+k+'</div><div class="h1">'+t+'</div>'+(sub?'<div class="h2">'+sub+'</div>':'');
+  if (st==='lobby'){ const url=location.origin+'/?code='+S.code; return '<div style="display:flex;gap:5vw;align-items:center;justify-content:center;flex-wrap:wrap"><div class="qr" id="qr"></div><div style="text-align:left"><div class="kick">સંગમમાં જોડાઓ · ફોન સ્કેન કરો</div><div class="h2" style="margin-top:.5rem">Room Code</div><div class="code">'+S.code+'</div><div class="h2" style="word-break:break-all">'+esc(url)+'</div><div class="big" style="margin-top:.6rem">'+S.nPlayers+' <span class="h2">ખેલાડી</span></div></div></div><div class="zg">'+S.zones.map(z=>'<div class="glass zc"><div class="nm"><span>ઝોન '+esc(z)+'</span><span class="dot" style="background:'+zc(z)+';color:'+zc(z)+'"></span></div><div class="big">'+S.byZone[z].n+'</div></div>').join('')+'</div>'; }
+  if (st==='pick') return K(ph,'શુભ લાઇન અને કવચ પસંદ કરો','12 લાઇનમાંથી એક શુભ લાઇન (+10) · કાર્ડનું એક કવચ ખાનું · બીજા કોઈને દેખાશે નહીં')+'<div style="display:flex;gap:1.4rem;align-items:center">'+ring(S.pickSec||60)+'<div class="chip">તૈયાર <b>'+S.pickIn+' / '+S.nPlayers+'</b></div></div>'+zonesBoard();
+  if (st==='active'||st==='locked'){ let p=''; for(let i=0;i<S.per;i++) p+='<i class="'+(i<S.used-S.phase*S.per?'on':'')+'"></i>'; return K(ph, st==='locked'?'સમય પૂરો':'આગલો નંબર', st==='locked'?'જવાબ નોંધાઈ ગયા · સાચા-ખોટા અંતે જ ખૂલશે':'')+'<div class="pips">'+p+'</div>'+zonesBoard(); }
+  if (st==='spinning'||st==='revealing') return '<div class="kick">'+ph+'</div><div class="wheel"><div class="ptr"></div>'+wheelHTML(S.wheelNums||[1])+'</div>'+(st==='revealing'?'<div class="numbadge">'+S.qNo+'</div>':'');
+  if (st==='question') return '<div class="top" style="width:100%;justify-content:center;gap:1.6rem"><div class="kick">'+ph+' · પ્રશ્ન '+S.qNo+'</div>'+ring(S.qSec)+'<div class="chip">નોંધાયું <b>'+S.markedNow+' / '+S.nPlayers+'</b></div></div><div class="qtxt">'+esc(S.q||'')+'</div>'+(S.qImg?'<img class="qimg" src="/'+encodeURI(S.qImg)+'" onerror="this.remove()">':'')+zonesBoard();
+  if (st==='yuddh'||st==='yuddhwait') return K(ph+' પછી', st==='yuddh'?'⚔ બાણ કે 🛡 ઢાલ?':'યુદ્ધ પૂરું', st==='yuddh'?'ગુપ્ત પસંદગી · કોણે શું કર્યું તે અંતે ખૂલશે':'પરિણામ અંતિમ રિવીલમાં')+(st==='yuddh'?'<div style="display:flex;gap:1.4rem;align-items:center">'+ring(S.yuddhSec||15)+'<div class="chip">તૈયાર <b>'+S.yIn+' / '+S.nPlayers+'</b></div></div>':'')+zonesBoard();
+  if (st==='final') return confetti()+K('ધ સંગમ','બધા પ્રશ્નો પૂરા!','હવે અંતિમ પરિણામનો સમય — ખાનાં ખૂલશે, ચિત્ર બનશે');
+  if (st==='reveal') return revealScene();
+  return '';
+}
+function draw(){
+  if (!S) return; try{ BGTheme.sync(S.theme || BGTheme.PRESETS.fun); }catch(e){}
+  if (!splashed) { splashed = true; try{ showLogoSplash('ધ સંગમ'); }catch(e){} }
+  const k=[S.status,S.spinAt,S.qNo].join('|'); if ((S.status==='spinning'||S.status==='revealing') && sig===k && $('#wg')) return; sig=k;
+  const chips = S.status==='lobby'||S.status==='reveal'||S.status==='final' ? '' : '<span class="chip">પ્રશ્ન <b>'+Math.min(S.used,S.nQ)+' / '+S.nQ+'</b></span><span class="chip">ખેલાડી <b>'+S.nPlayers+'</b></span>';
+  const splash = '';
+  app.innerHTML = splash+'<div class="top"><div class="brand"><img src="logo.svg" alt="">THE SANGAM</div><div class="chips">'+chips+'</div></div><div class="main">'+mainHTML()+'</div>';
+  const q=$('#qr'); if (q && window.makeQrSvg) q.innerHTML = window.makeQrSvg(location.origin+'/?code='+S.code, 300);
+  if (S.status==='spinning'||S.status==='revealing') spinWheel();
+}
+setInterval(()=>{ if(!S) return; const l=left(), t=document.querySelector('[data-tm]'); if(t) t.textContent = S.status==='yuddh'&&S.yuddhEnd ? sec(S.yuddhEnd-Date.now()) : S.status==='pick'&&S.pickEnd ? sec(S.pickEnd-Date.now()) : sec(l);
+  const r=document.querySelector('.ring'); if(r){ let rem=l, tot=S.qSec*1000; if(S.status==='yuddh'){ rem=S.yuddhEnd-Date.now(); tot=(S.yuddhSec||15)*1000; } if(S.status==='pick'){ rem=S.pickEnd-Date.now(); tot=(S.pickSec||60)*1000; } const f=Math.max(0,Math.min(1,rem/tot)); r.querySelector('.fg').style.strokeDashoffset=(2*Math.PI*40*(1-f)).toFixed(1); } },200);
+socket.on('state', s => { S = s; draw(); });
+socket.on('connect', () => { socket.emit('pj:join', { code:CODE }, r => { if (!r || !r.ok) app.innerHTML = '<div class="main"><div class="h1">કોડ સાચો નથી</div><div class="h2">'+esc(CODE)+'</div></div>'; }); });
+if (!CODE) app.innerHTML = '<div class="main"><div class="h1">ધ સંગમ · Projector</div><div class="h2">Host પેજ પરથી "📽 Projector ખોલો" દબાવો</div></div>';
+</script>
+<script id="up-clock">
+/* Server-clock sync: every phone/laptop uses the SAME clock (server time), so timers & number reveal match exactly */
+(function(){
+  var RAW=Date.now.bind(Date),SK=0,best=1e9,n=0;
+  Date.now=function(){ return RAW()+SK; };
+  window.__srvSkew=function(){ return SK; };
+  function sample(){ try{ var t0=RAW(); socket.emit('time:sync',null,function(st){ if(typeof st!=='number') return; var t1=RAW(),rtt=t1-t0,off=st+rtt/2-t1;
+      if(n<6||rtt<=best*1.5+30){ if(rtt<best) best=rtt; SK=(n<3)?off:Math.round(SK*.5+off*.5); n++; } }); }catch(e){} }
+  function burst(){ best=1e9; n=0; for(var i=0;i<6;i++) setTimeout(sample,i*250); }
+  try{ socket.on('connect',burst); if(socket.connected) burst(); }catch(e){}
+  setInterval(sample,20000);
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden) burst(); });
+})();
+</script>
+</body>
+</html>

@@ -34,6 +34,7 @@ app.use((req, res, next) => {
   next();
 });
 app.get('/', (req, res) => res.redirect('/player.html' + (req.query.code ? '?code=' + encodeURIComponent(req.query.code) : '')));
+app.get(['/projector','/pj'], (req, res) => res.redirect('/projector.html' + (req.query.code ? '?code=' + encodeURIComponent(req.query.code) : '')));
 app.get(['/host','/admin'], (req, res) => res.redirect('/host.html'));
 app.get('/api/default-questions', (req, res) => {
   let t = ''; try { t = fs.readFileSync(path.join(__dirname,'questions.txt'),'utf8'); } catch(e){}
@@ -233,7 +234,7 @@ function publicState(r){
     code:r.code, status:r.status, phase:r.phase, phaseNames:r.phaseNames, zones:r.zones, qSec:r.qSec, nQ:NQ, per:PER,
     now:Date.now(), timerEnd:r.timerEnd, paused:!!r.paused, pausedMs:r.pausedMs||0,
     qNo: idx!=null ? idx+1 : null, used:r.usedIdx.length, wheelNums:r.wheelNums||null, spinAt:r.spinAt||0,
-    nPlayers:P.length, byZone, pickEnd:r.pickEnd, yuddhEnd:r.yuddhEnd, step:r.step,
+    nPlayers:P.length, theme:r.theme||null, pickSec:DEF.pickSec, yuddhSec:DEF.yuddhSec, byZone, pickEnd:r.pickEnd, yuddhEnd:r.yuddhEnd, step:r.step,
     pickIn: r.status==='pick' ? P.filter(p=>p.pickedAt).length : 0,
     yIn: r.status==='yuddh' ? Object.keys(r.yuddh[r.phase]||{}).length : 0
   };
@@ -244,6 +245,7 @@ function publicState(r){
 function revealView(r){
   const s = r.step, R = r.res, v = { step:s, steps:STEPS, win:{}, chitra:null };
   STEPS.forEach((k,i) => { if (i > s) return; if (k==='tiles') return; if (k==='yuddh') v.yuddh = { table:R.yTable, loss:R.loss, zones:r.zones }; else if (k==='chitra') { v.mosaic = R.mosaic; v.nShubh=R.nShubh; v.shubhAll=R.win.shubhAll; } else v.win[k] = R.win[k]; });
+  if (s >= STEPS.indexOf('chinh')) v.chinhCi = R.chinhCi;
   return v;
 }
 function hostState(r){
@@ -413,6 +415,7 @@ io.on('connection', socket => {
   H('host:prev', r => { if (r.status === 'reveal' && r.step > 0) r.step--; });
   H('host:setQSec', (r, a) => { r.qSec = Math.max(10, Math.min(120, +a.sec||30)); });
   H('host:setNames', (r, a) => { r.phaseNames = r.phaseNames.map((n,i)=>String((a.names||[])[i]||'').trim().slice(0,30)||n); });
+  H('host:setTheme', (r, a) => { const t = a.theme, hx = v => typeof v==='string' && /^#[0-9a-fA-F]{6}$/.test(v); if (!t) { r.theme = null; return; } if (hx(t.p) && hx(t.s) && hx(t.bg)) r.theme = { p:t.p, s:t.s, bg:t.bg, rainbow: t.rainbow?1:0 }; });
   H('host:kick', (r, a) => { const p = r.players[a.key]; if (p) { if (p.sid) io.to(p.sid).emit('kicked'); delete r.players[a.key]; } });
   H('host:addBots', (r, a) => { const n = Math.max(1, Math.min(600, +a.n||10)); for (let i=0;i<n;i++) { const key = 'b'+tok(); const z = r.zones[Math.floor(Math.random()*r.zones.length)];
       r.players[key] = { key, token:key, name:'Bot '+(Object.keys(r.players).length+1), zone:z, avatar:'🤖', card:makeCard(r.questions), marks:{}, markTs:{}, shubh:null, kavach:null, bot:true, online:true, joinedAt:Date.now() }; } r.botsPlay = true; });
